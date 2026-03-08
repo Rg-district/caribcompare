@@ -1,35 +1,51 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server'
 
-let cache: { rate: number; fetchedAt: string } | null = null;
-let cacheTime = 0;
-const TTL = 60 * 60 * 1000; // 1 hour
+// In-memory cache
+let cache: { rate: number; fetchedAt: string } | null = null
+let cacheTime = 0
+const CACHE_TTL = 60 * 60 * 1000 // 1 hour
 
 export async function GET() {
-  const now = Date.now();
-
-  if (cache && now - cacheTime < TTL) {
-    return NextResponse.json(cache);
+  const now = Date.now()
+  
+  // Return cached rate if fresh
+  if (cache && now - cacheTime < CACHE_TTL) {
+    return NextResponse.json({ ...cache, cached: true })
   }
 
   try {
+    // BBD is pegged to USD at exactly 2:1
+    // So GBP/BBD = GBP/USD * 2
+    // Using fawazahmed0 free currency API (200+ currencies, no rate limits)
     const res = await fetch(
-      "https://api.frankfurter.app/latest?from=GBP&to=BBD",
-      { cache: "no-store" }
-    );
-    const data = await res.json();
-    const rate = data.rates?.BBD;
-
-    if (!rate) {
-      throw new Error("BBD rate not found");
+      'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/gbp.json',
+      { next: { revalidate: 3600 } }
+    )
+    
+    if (!res.ok) throw new Error('API error')
+    
+    const data = await res.json()
+    const gbpUsd = data.gbp?.usd
+    
+    if (!gbpUsd) throw new Error('Rate not found')
+    
+    // BBD is pegged 2:1 to USD
+    const gbpBbd = gbpUsd * 2
+    
+    cache = {
+      rate: Math.round(gbpBbd * 10000) / 10000,
+      fetchedAt: new Date().toISOString()
     }
-
-    cache = { rate, fetchedAt: new Date().toISOString() };
-    cacheTime = now;
-
-    return NextResponse.json(cache);
-  } catch {
-    // Fallback rate if API is unavailable
-    const fallback = { rate: 2.53, fetchedAt: new Date().toISOString() };
-    return NextResponse.json(fallback);
+    cacheTime = now
+    
+    return NextResponse.json(cache)
+  } catch (err) {
+    // Fallback to approximate rate if API fails
+    console.error('Rate fetch error:', err)
+    return NextResponse.json({
+      rate: 2.67,
+      fetchedAt: new Date().toISOString(),
+      fallback: true
+    })
   }
 }
