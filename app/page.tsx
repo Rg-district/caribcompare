@@ -1,0 +1,143 @@
+import Link from "next/link";
+import RateWidget from "@/components/RateWidget";
+import EmailSignup from "@/components/EmailSignup";
+
+const categories = [
+  {
+    title: "Send Money",
+    description: "Compare fees, exchange rates, and speed across top remittance providers.",
+    href: "/send-money",
+    icon: "💸",
+  },
+  {
+    title: "Invest",
+    description: "Access global stock markets and ETFs from Barbados.",
+    href: "/invest",
+    icon: "📈",
+  },
+  {
+    title: "Crypto",
+    description: "Buy Bitcoin and crypto with the lowest fees available.",
+    href: "/crypto",
+    icon: "🪙",
+  },
+];
+
+const guides = [
+  {
+    slug: "send-money-to-barbados-from-uk",
+    title: "How to Send Money to Barbados from the UK in 2026 — Complete Guide",
+    category: "Send Money",
+    readTime: "8 min read",
+  },
+  {
+    slug: "invest-from-barbados",
+    title: "How to Invest in the S&P 500 from Barbados — Step by Step",
+    category: "Investing",
+    readTime: "6 min read",
+  },
+  {
+    slug: "best-crypto-exchanges-barbados",
+    title: "Best Crypto Exchanges for Barbados Residents in 2026",
+    category: "Crypto",
+    readTime: "7 min read",
+  },
+];
+
+export default function Home() {
+  return (
+    <>
+      {/* Hero */}
+      <section className="bg-navy text-white py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+                The smarter way to manage money —{" "}
+                <span className="text-gold">built for the Caribbean</span>
+              </h1>
+              <p className="mt-4 text-lg text-gray-300">
+                Compare remittance rates, investment platforms, and crypto
+                exchanges.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/send-money"
+                  className="bg-gold hover:bg-gold-light text-navy font-semibold px-6 py-3 rounded-lg text-sm transition-colors"
+                >
+                  Compare Rates
+                </Link>
+                <Link
+                  href="/guides"
+                  className="border border-white/30 hover:bg-white/10 px-6 py-3 rounded-lg text-sm transition-colors"
+                >
+                  Read Guides
+                </Link>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <RateWidget />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Cards */}
+      <section className="max-w-6xl mx-auto px-4 -mt-8">
+        <div className="grid md:grid-cols-3 gap-6">
+          {categories.map((cat) => (
+            <Link
+              key={cat.href}
+              href={cat.href}
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow group"
+            >
+              <span className="text-3xl">{cat.icon}</span>
+              <h2 className="text-lg font-bold text-navy mt-3 group-hover:text-gold transition-colors">
+                {cat.title}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">{cat.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Trust Bar */}
+      <section className="max-w-6xl mx-auto px-4 mt-12">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-6 px-8 text-center">
+          <p className="text-gray-600 font-medium">
+            Comparing{" "}
+            <span className="text-navy font-bold">8+ providers</span> across{" "}
+            <span className="text-navy font-bold">3 categories</span>
+          </p>
+        </div>
+      </section>
+
+      {/* Email Signup */}
+      <section className="max-w-6xl mx-auto px-4 mt-12">
+        <EmailSignup />
+      </section>
+
+      {/* Latest Guides */}
+      <section className="max-w-6xl mx-auto px-4 mt-12 pb-8">
+        <h2 className="text-2xl font-bold text-navy mb-6">Latest Guides</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {guides.map((guide) => (
+            <Link
+              key={guide.slug}
+              href={`/guides/${guide.slug}`}
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow group"
+            >
+              <span className="text-xs font-semibold text-gold uppercase tracking-wider">
+                {guide.category}
+              </span>
+              <h3 className="text-base font-bold text-navy mt-2 group-hover:text-gold transition-colors leading-snug">
+                {guide.title}
+              </h3>
+              <p className="text-xs text-gray-400 mt-3">{guide.readTime}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
