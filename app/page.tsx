@@ -1,6 +1,7 @@
 import Link from "next/link";
 import RateWidget from "@/components/RateWidget";
 import EmailSignup from "@/components/EmailSignup";
+import { countryConfig } from "@/lib/providers";
 
 const categories = [
   {
@@ -11,7 +12,7 @@ const categories = [
   },
   {
     title: "Invest",
-    description: "Access global stock markets and ETFs from Barbados.",
+    description: "Access global stock markets and ETFs from the Caribbean.",
     href: "/invest",
     icon: "📈",
   },
@@ -44,6 +45,12 @@ const guides = [
   },
 ];
 
+const countries = [
+  { key: "uk" as const, providers: 5 },
+  { key: "us" as const, providers: 5 },
+  { key: "canada" as const, providers: 5 },
+];
+
 export default function Home() {
   return (
     <>
@@ -58,9 +65,33 @@ export default function Home() {
               </h1>
               <p className="mt-4 text-lg text-gray-300">
                 Compare remittance rates, investment platforms, and crypto
-                exchanges.
+                exchanges. Trusted by the diaspora in the UK, US, and Canada.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
+
+              {/* Country quick links */}
+              <div className="mt-6">
+                <p className="text-sm text-gray-400 mb-3">Send money from:</p>
+                <div className="flex flex-wrap gap-3">
+                  {countries.map((country) => {
+                    const config = countryConfig[country.key];
+                    return (
+                      <Link
+                        key={country.key}
+                        href={`/send-money/${country.key}`}
+                        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2.5 rounded-lg transition-colors"
+                      >
+                        <span className="text-xl">{config.flag}</span>
+                        <span className="font-medium">{config.name}</span>
+                        <span className="text-xs text-gray-400">
+                          {country.providers} providers
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/send-money"
                   className="bg-gold hover:bg-gold-light text-navy font-semibold px-6 py-3 rounded-lg text-sm transition-colors"
@@ -103,12 +134,59 @@ export default function Home() {
 
       {/* Trust Bar */}
       <section className="max-w-6xl mx-auto px-4 mt-12">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-6 px-8 text-center">
-          <p className="text-gray-600 font-medium">
-            Comparing{" "}
-            <span className="text-navy font-bold">8+ providers</span> across{" "}
-            <span className="text-navy font-bold">3 categories</span>
-          </p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-6 px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-navy">15+</p>
+              <p className="text-sm text-gray-600">Providers compared</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-navy">3</p>
+              <p className="text-sm text-gray-600">Countries supported</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-navy">🇬🇧 🇺🇸 🇨🇦</p>
+              <p className="text-sm text-gray-600">Diaspora markets</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-navy">Free</p>
+              <p className="text-sm text-gray-600">Always free to use</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Country sections */}
+      <section className="max-w-6xl mx-auto px-4 mt-12">
+        <h2 className="text-2xl font-bold text-navy mb-6">Compare by Country</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {countries.map((country) => {
+            const config = countryConfig[country.key];
+            return (
+              <Link
+                key={country.key}
+                href={`/send-money/${country.key}`}
+                className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md hover:border-gold transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-4xl">{config.flag}</span>
+                  <div>
+                    <h3 className="font-bold text-navy group-hover:text-gold transition-colors">
+                      {config.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">{config.currency} → BBD</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Compare {country.providers} providers for the best rates sending{" "}
+                  {config.currency} to Barbados.
+                </p>
+                <span className="text-gold font-semibold text-sm">
+                  Compare rates →
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

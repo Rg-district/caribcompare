@@ -1,214 +1,165 @@
-"use client";
+import Link from "next/link";
+import { countryConfig } from "@/lib/providers";
+import type { Metadata } from "next";
 
-import { useState, useEffect, useCallback } from "react";
-import StarRating from "@/components/StarRating";
-import EmailSignup from "@/components/EmailSignup";
+export const metadata: Metadata = {
+  title: "Send Money to Barbados — Compare Best Rates | CaribCompare",
+  description:
+    "Compare money transfer services for sending money to Barbados from UK, USA, and Canada. Find the lowest fees and best exchange rates.",
+  openGraph: {
+    title: "Send Money to Barbados — Compare Best Rates",
+    description:
+      "Compare money transfer services for sending money to Barbados from UK, USA, and Canada.",
+    url: "https://caribcompare.com/send-money",
+  },
+};
 
-interface Provider {
-  name: string;
-  feeGBP: number;
-  margin: number;
-  speed: string;
-  rating: number;
-  badge?: string;
-  affiliateUrl: string;
-}
-
-const providers: Provider[] = [
-  { name: "Wise", feeGBP: 2.4, margin: 0.004, speed: "1–2 days", rating: 5, badge: "Best Rate", affiliateUrl: "#wise" },
-  { name: "Remitly", feeGBP: 1.99, margin: 0.025, speed: "Minutes", rating: 4, affiliateUrl: "#remitly" },
-  { name: "Revolut", feeGBP: 0, margin: 0.005, speed: "Instant", rating: 4, affiliateUrl: "#revolut" },
-  { name: "Western Union", feeGBP: 4.9, margin: 0.045, speed: "Minutes", rating: 3, affiliateUrl: "#wu" },
-  { name: "MoneyGram", feeGBP: 4.5, margin: 0.05, speed: "Minutes", rating: 3, affiliateUrl: "#mg" },
-];
-
-const faqs = [
+const countries = [
   {
-    q: "What is the cheapest way to send money to Barbados?",
-    a: "Based on current rates, Wise typically offers the best overall value with low fees and near mid-market exchange rates. Use our comparison tool above to check live rates.",
+    key: "uk" as const,
+    description: "Send GBP to Barbados with the best rates for UK residents.",
+    popular: ["Wise", "Remitly", "WorldRemit"],
   },
   {
-    q: "How long does a transfer to Barbados take?",
-    a: "Transfer times vary by provider. Revolut offers instant transfers, while Wise typically takes 1–2 business days. Western Union and Remitly can deliver within minutes to cash pickup locations.",
+    key: "us" as const,
+    description: "Compare USD to BBD transfers from the United States.",
+    popular: ["Wise", "Remitly", "MoneyGram"],
   },
   {
-    q: "Do I need a bank account in Barbados to receive money?",
-    a: "Not always. Some providers like Western Union and MoneyGram offer cash pickup options. However, bank transfers are generally cheaper and more convenient.",
-  },
-  {
-    q: "What exchange rate will I get?",
-    a: "Each provider sets their own exchange rate, typically with a margin above the mid-market rate. Our comparison tool shows you the effective rate after all fees and margins are applied.",
+    key: "canada" as const,
+    description: "Find the cheapest way to send CAD to Barbados.",
+    popular: ["Wise", "Remitly", "Xe"],
   },
 ];
 
 export default function SendMoneyPage() {
-  const [amount, setAmount] = useState("300");
-  const [rate, setRate] = useState<number | null>(null);
-
-  const fetchRate = useCallback(async () => {
-    try {
-      const res = await fetch("/api/rates");
-      const data = await res.json();
-      setRate(data.rate);
-    } catch {
-      setRate(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRate();
-  }, [fetchRate]);
-
-  const gbp = parseFloat(amount) || 0;
-
-  const results = providers
-    .map((p) => {
-      const afterFee = gbp - p.feeGBP;
-      const bbd = rate && afterFee > 0 ? afterFee * rate * (1 - p.margin) : 0;
-      return { ...p, bbd };
-    })
-    .sort((a, b) => b.bbd - a.bbd);
-
   return (
     <>
       {/* Hero */}
       <section className="bg-navy text-white py-12 md:py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Send Money to Barbados —{" "}
-            <span className="text-gold">Compare All Providers</span>
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+            Send Money to Barbados
           </h1>
-          <p className="mt-3 text-gray-300">
-            Find the cheapest way to send GBP to BBD. Rates update in real time.
+          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+            Compare fees, exchange rates, and delivery speeds across the top money
+            transfer services. Choose your country to get started.
           </p>
         </div>
       </section>
 
-      {/* Calculator */}
-      <section className="max-w-6xl mx-auto px-4 -mt-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Amount to send
-          </label>
-          <div className="relative max-w-xs">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-              &pound;
-            </span>
-            <input
-              type="number"
-              min="0"
-              step="any"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-gold"
-            />
-          </div>
-          {rate && (
-            <p className="text-xs text-gray-400 mt-2">
-              Mid-market rate: 1 GBP = {rate.toFixed(4)} BBD
-            </p>
-          )}
+      {/* Country selection */}
+      <section className="max-w-4xl mx-auto px-4 py-12">
+        <h2 className="text-xl font-bold text-navy text-center mb-8">
+          Where are you sending from?
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {countries.map((country) => {
+            const config = countryConfig[country.key];
+            return (
+              <Link
+                key={country.key}
+                href={`/send-money/${country.key}`}
+                className="group bg-white rounded-2xl border-2 border-gray-100 hover:border-gold p-8 text-center transition-all hover:shadow-lg"
+              >
+                <span className="text-6xl block mb-4">{config.flag}</span>
+                <h3 className="text-xl font-bold text-navy mb-2 group-hover:text-gold transition-colors">
+                  {config.name}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">{country.description}</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {country.popular.map((provider) => (
+                    <span
+                      key={provider}
+                      className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                    >
+                      {provider}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-6 text-gold font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                  Compare rates →
+                </div>
+              </Link>
+            );
+          })}
         </div>
+      </section>
 
-        {/* Comparison Table */}
-        <div className="space-y-4">
-          {results.map((p, i) => (
-            <div
-              key={p.name}
-              className={`bg-white rounded-xl shadow-sm border p-6 ${
-                i === 0 ? "border-gold ring-2 ring-gold/20" : "border-gray-100"
-              }`}
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-bold text-navy">{p.name}</h3>
-                    {p.badge && (
-                      <span className="bg-gold/10 text-gold text-xs font-semibold px-3 py-1 rounded-full">
-                        {p.badge}
-                      </span>
-                    )}
-                  </div>
-                  <StarRating rating={p.rating} />
-                </div>
-
-                <div className="flex flex-wrap gap-6 text-sm">
-                  <div>
-                    <span className="text-gray-500 block">Fee</span>
-                    <span className="font-medium">
-                      {p.feeGBP === 0 ? "Free" : `£${p.feeGBP.toFixed(2)}`}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block">Margin</span>
-                    <span className="font-medium">
-                      {(p.margin * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block">Speed</span>
-                    <span className="font-medium">{p.speed}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block">Recipient gets</span>
-                    <span className="text-xl font-bold text-navy">
-                      ${p.bbd.toFixed(2)} BBD
-                    </span>
-                  </div>
-                </div>
-
-                <a
-                  href={p.affiliateUrl}
-                  onClick={() => console.log(`CTA clicked: ${p.name}`)}
-                  className="bg-gold hover:bg-gold-light text-navy font-semibold px-6 py-3 rounded-lg text-sm transition-colors text-center whitespace-nowrap"
-                >
-                  Send with {p.name}
-                </a>
+      {/* Why compare */}
+      <section className="bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-2xl font-bold text-navy text-center mb-8">
+            Why Compare Before You Send?
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="flex gap-4">
+              <div className="text-3xl">💸</div>
+              <div>
+                <h3 className="font-bold text-navy mb-1">Save on Every Transfer</h3>
+                <p className="text-sm text-gray-600">
+                  Exchange rate margins can cost you 2-5% of your transfer. On £1,000, that's
+                  £20-50 lost. We help you find the best deal every time.
+                </p>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="max-w-6xl mx-auto px-4 mt-12">
-        <h2 className="text-2xl font-bold text-navy mb-6">
-          Frequently Asked Questions
-        </h2>
-        <div className="space-y-4">
-          {faqs.map((faq) => (
-            <div
-              key={faq.q}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
-            >
-              <h3 className="font-semibold text-navy">{faq.q}</h3>
-              <p className="text-sm text-gray-600 mt-2">{faq.a}</p>
+            <div className="flex gap-4">
+              <div className="text-3xl">🔍</div>
+              <div>
+                <h3 className="font-bold text-navy mb-1">See the Real Cost</h3>
+                <p className="text-sm text-gray-600">
+                  Many services hide fees in poor exchange rates. We show you the total cost
+                  including all margins and fees.
+                </p>
+              </div>
             </div>
-          ))}
+            <div className="flex gap-4">
+              <div className="text-3xl">⏱️</div>
+              <div>
+                <h3 className="font-bold text-navy mb-1">Choose Your Speed</h3>
+                <p className="text-sm text-gray-600">
+                  Need it there today? We'll show you instant options. Prefer to save money?
+                  We'll find the best value for slower transfers.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="text-3xl">🇧🇧</div>
+              <div>
+                <h3 className="font-bold text-navy mb-1">Caribbean-Focused</h3>
+                <p className="text-sm text-gray-600">
+                  We specialise in transfers to Barbados and the Caribbean. Our comparisons
+                  focus on what actually works for this corridor.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* JSON-LD FAQ Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((faq) => ({
-              "@type": "Question",
-              name: faq.q,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.a,
-              },
-            })),
-          }),
-        }}
-      />
-
-      <section className="max-w-6xl mx-auto px-4 mt-12">
-        <EmailSignup />
+      {/* Quick facts */}
+      <section className="max-w-4xl mx-auto px-4 py-12">
+        <h2 className="text-xl font-bold text-navy mb-6">Quick Facts: BBD Exchange Rate</h2>
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div>
+              <p className="text-3xl font-bold text-navy">2:1</p>
+              <p className="text-sm text-gray-600">BBD is pegged to USD</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-navy">~2.5</p>
+              <p className="text-sm text-gray-600">Approx GBP to BBD rate</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-navy">~1.45</p>
+              <p className="text-sm text-gray-600">Approx CAD to BBD rate</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 text-center mt-4">
+            Rates are approximate and change daily. Always check current rates before sending.
+          </p>
+        </div>
       </section>
     </>
   );
