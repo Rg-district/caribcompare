@@ -2,6 +2,7 @@ import Link from "next/link";
 import RateWidget from "@/components/RateWidget";
 import EmailSignup from "@/components/EmailSignup";
 import { countryConfig } from "@/lib/providers";
+import { getPopularDestinations } from "@/lib/destinations";
 
 const categories = [
   {
@@ -26,16 +27,16 @@ const categories = [
 
 const guides = [
   {
+    slug: "caribbean-currencies-pegged-to-usd",
+    title: "Caribbean Currencies Pegged to the US Dollar — Complete Guide",
+    category: "Send Money",
+    readTime: "6 min read",
+  },
+  {
     slug: "send-money-to-barbados-from-uk",
     title: "How to Send Money to Barbados from the UK in 2026 — Complete Guide",
     category: "Send Money",
     readTime: "8 min read",
-  },
-  {
-    slug: "invest-from-barbados",
-    title: "How to Invest in the S&P 500 from Barbados — Step by Step",
-    category: "Investing",
-    readTime: "6 min read",
   },
   {
     slug: "best-crypto-exchanges-barbados",
@@ -141,12 +142,12 @@ export default function Home() {
               <p className="text-sm text-gray-600">Providers compared</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-navy">3</p>
-              <p className="text-sm text-gray-600">Countries supported</p>
+              <p className="text-2xl font-bold text-navy">14</p>
+              <p className="text-sm text-gray-600">Caribbean destinations</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-navy">🇬🇧 🇺🇸 🇨🇦</p>
-              <p className="text-sm text-gray-600">Diaspora markets</p>
+              <p className="text-sm text-gray-600">Send from UK, US, Canada</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-navy">Free</p>
@@ -187,6 +188,34 @@ export default function Home() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      {/* Caribbean Destinations */}
+      <section className="max-w-6xl mx-auto px-4 mt-12">
+        <h2 className="text-2xl font-bold text-navy mb-2">Send to Any Caribbean Island</h2>
+        <p className="text-gray-600 mb-6">Compare rates for transfers to these popular destinations</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+          {getPopularDestinations().map((dest) => (
+            <div
+              key={dest.code}
+              className="bg-white rounded-lg border border-gray-100 p-4 text-center hover:shadow-sm hover:border-gold transition-all"
+            >
+              <span className="text-3xl block mb-2">{dest.flag}</span>
+              <p className="text-sm font-medium text-navy">{dest.name}</p>
+              <p className="text-xs text-gray-500">{dest.currencyCode}</p>
+              {dest.peggedToUSD && (
+                <span className="inline-block mt-1 text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                  USD peg
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 text-center">
+          <Link href="/guides/caribbean-currencies-pegged-to-usd" className="text-sm text-gold font-medium">
+            Learn about Caribbean currency pegs →
+          </Link>
         </div>
       </section>
 

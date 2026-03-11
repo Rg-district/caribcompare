@@ -9,6 +9,30 @@ export interface Guide {
 
 export const guides: Guide[] = [
   {
+    slug: "caribbean-currencies-pegged-to-usd",
+    title: "Caribbean Currencies Pegged to the US Dollar — Complete Guide",
+    category: "Send Money",
+    readTime: "6 min read",
+    date: "2026-03-11",
+    body: `If you're sending money to the Caribbean, understanding which currencies are pegged to the US dollar can help you predict exchange rates and save money on transfers. A currency peg means the local currency maintains a fixed exchange rate against the US dollar.
+
+Quick Reference — USD-Pegged Caribbean Currencies:
+• Bahamian Dollar (BSD) — 1:1 with USD
+• Bermudian Dollar (BMD) — 1:1 with USD  
+• Barbados Dollar (BBD) — 2:1 with USD
+• Belize Dollar (BZD) — 2:1 with USD
+• Eastern Caribbean Dollar (XCD) — 2.70:1 with USD (used by 8 island nations)
+• Aruba Florin (AWG) — 1.79:1 with USD
+
+The Eastern Caribbean Dollar is particularly notable — it's used by Antigua & Barbuda, Dominica, Grenada, Saint Kitts & Nevis, Saint Lucia, Saint Vincent & the Grenadines, Anguilla, and Montserrat. The peg has been stable since 1976.
+
+Not all Caribbean currencies are pegged. Jamaica (JMD), Trinidad & Tobago (TTD), and Guyana (GYD) have floating currencies that fluctuate daily. For these destinations, timing your transfer can make a difference.
+
+Why does this matter for transfers? With pegged currencies, you know exactly what your recipient will get. A $500 transfer to Barbados always converts to ~$1,000 BBD. Focus on comparing transfer fees rather than waiting for better rates — the rate is fixed.
+
+For floating currencies like Jamaica, compare providers on the day of transfer and consider rate alerts to catch favorable movements.`,
+  },
+  {
     slug: "send-money-to-barbados-from-uk",
     title: "How to Send Money to Barbados from the UK in 2026 — Complete Guide",
     category: "Send Money",
