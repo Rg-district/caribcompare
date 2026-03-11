@@ -7,6 +7,7 @@ const links = [
   { href: "/send-money", label: "Send Money" },
   { href: "/invest", label: "Invest" },
   { href: "/crypto", label: "Crypto" },
+  { href: "/tools", label: "Tools" },
   { href: "/guides", label: "Guides" },
 ];
 
