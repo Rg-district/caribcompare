@@ -12,6 +12,12 @@ const categories = [
     icon: "💸",
   },
   {
+    title: "Flights",
+    description: "Find the cheapest flights to the Caribbean from UK, USA, Canada, France & Netherlands.",
+    href: "/flights",
+    icon: "✈️",
+  },
+  {
     title: "Invest",
     description: "Access global stock markets and ETFs from the Caribbean.",
     href: "/invest",
@@ -50,6 +56,8 @@ const countries = [
   { key: "uk" as const, providers: 5 },
   { key: "us" as const, providers: 5 },
   { key: "canada" as const, providers: 5 },
+  { key: "france" as const, providers: 4 },
+  { key: "netherlands" as const, providers: 4 },
 ];
 
 export default function Home() {
@@ -146,8 +154,8 @@ export default function Home() {
               <p className="text-sm text-gray-600">Caribbean destinations</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-navy">🇬🇧 🇺🇸 🇨🇦</p>
-              <p className="text-sm text-gray-600">Send from UK, US, Canada</p>
+              <p className="text-2xl font-bold text-navy">🇬🇧 🇺🇸 🇨🇦 🇫🇷 🇳🇱</p>
+              <p className="text-sm text-gray-600">UK, US, Canada, France, NL</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-navy">Free</p>
