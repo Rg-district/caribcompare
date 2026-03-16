@@ -156,8 +156,19 @@ const destinationNames: Record<string, { name: string; flag: string }> = {
   STT: { name: "US Virgin Islands", flag: "🇻🇮" },
 };
 
+// Map city names to Skyscanner IATA codes
+const cityToIata: Record<string, string> = {
+  london: "lhr",      // London Heathrow
+  miami: "mia",       // Miami International
+  newyork: "jfk",     // JFK
+  paris: "cdg",       // Charles de Gaulle
+  amsterdam: "ams",   // Amsterdam Schiphol
+  toronto: "yyz",     // Toronto Pearson
+};
+
 function generateSearchUrl(origin: string, dest: string): string {
-  return `https://www.skyscanner.net/transport/flights/${origin.toLowerCase()}/${dest.toLowerCase()}/`;
+  const originCode = cityToIata[origin.toLowerCase()] || origin.toLowerCase();
+  return `https://www.skyscanner.net/transport/flights/${originCode}/${dest.toLowerCase()}/`;
 }
 
 function parseUserQuery(query: string): { origin?: string; city?: string; destination?: string; budget?: number } {
