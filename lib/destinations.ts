@@ -1,201 +1,434 @@
-// Caribbean destination countries and their currencies
+// Full Caribbean destinations database
 
 export type Destination = {
-  code: string;
+  code: string;           // Airport/destination code
   name: string;
+  country: string;
   flag: string;
-  currency: string;
   currencyCode: string;
+  currencyName: string;
   peggedToUSD: boolean;
-  pegRate?: number; // How many local currency = 1 USD
-  region: "caribbean" | "eastern-caribbean";
-  popular: boolean;
+  region: "anglophone" | "french" | "dutch" | "spanish" | "other";
+  popularFrom: string[];  // Origin countries with direct/popular routes
+  description?: string;
 };
 
 export const destinations: Destination[] = [
-  // Major destinations (own currencies)
+  // ═══════════════════════════════════════════════════════════════════
+  // ANGLOPHONE CARIBBEAN
+  // ═══════════════════════════════════════════════════════════════════
   {
-    code: "barbados",
+    code: "BGI",
     name: "Barbados",
+    country: "Barbados",
     flag: "🇧🇧",
-    currency: "Barbados Dollar",
     currencyCode: "BBD",
+    currencyName: "Barbadian Dollar",
     peggedToUSD: true,
-    pegRate: 2.0,
-    region: "caribbean",
-    popular: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "Little England of the Caribbean. Major hub for UK diaspora.",
   },
   {
-    code: "jamaica",
+    code: "KIN",
     name: "Jamaica",
+    country: "Jamaica",
     flag: "🇯🇲",
-    currency: "Jamaican Dollar",
     currencyCode: "JMD",
+    currencyName: "Jamaican Dollar",
     peggedToUSD: false,
-    region: "caribbean",
-    popular: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "Largest English-speaking Caribbean nation. Major tourism destination.",
   },
   {
-    code: "trinidad",
+    code: "POS",
     name: "Trinidad & Tobago",
+    country: "Trinidad and Tobago",
     flag: "🇹🇹",
-    currency: "Trinidad & Tobago Dollar",
     currencyCode: "TTD",
+    currencyName: "Trinidad & Tobago Dollar",
     peggedToUSD: false,
-    region: "caribbean",
-    popular: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "Oil-rich twin islands. Home of Carnival and calypso.",
   },
   {
-    code: "bahamas",
-    name: "Bahamas",
-    flag: "🇧🇸",
-    currency: "Bahamian Dollar",
-    currencyCode: "BSD",
-    peggedToUSD: true,
-    pegRate: 1.0,
-    region: "caribbean",
-    popular: true,
-  },
-  {
-    code: "bermuda",
-    name: "Bermuda",
-    flag: "🇧🇲",
-    currency: "Bermudian Dollar",
-    currencyCode: "BMD",
-    peggedToUSD: true,
-    pegRate: 1.0,
-    region: "caribbean",
-    popular: false,
-  },
-  {
-    code: "belize",
-    name: "Belize",
-    flag: "🇧🇿",
-    currency: "Belize Dollar",
-    currencyCode: "BZD",
-    peggedToUSD: true,
-    pegRate: 2.0,
-    region: "caribbean",
-    popular: false,
-  },
-  {
-    code: "guyana",
+    code: "GEO",
     name: "Guyana",
+    country: "Guyana",
     flag: "🇬🇾",
-    currency: "Guyanese Dollar",
     currencyCode: "GYD",
+    currencyName: "Guyanese Dollar",
     peggedToUSD: false,
-    region: "caribbean",
-    popular: false,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "South American Caribbean. Growing economy with new oil discoveries.",
+  },
+  {
+    code: "ANU",
+    name: "Antigua",
+    country: "Antigua and Barbuda",
+    flag: "🇦🇬",
+    currencyCode: "XCD",
+    currencyName: "East Caribbean Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "365 beaches. Popular for sailing and luxury tourism.",
+  },
+  {
+    code: "UVF",
+    name: "St Lucia",
+    country: "Saint Lucia",
+    flag: "🇱🇨",
+    currencyCode: "XCD",
+    currencyName: "East Caribbean Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "The Pitons. Popular honeymoon and wedding destination.",
+  },
+  {
+    code: "GND",
+    name: "Grenada",
+    country: "Grenada",
+    flag: "🇬🇩",
+    currencyCode: "XCD",
+    currencyName: "East Caribbean Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us", "canada"],
+    description: "Spice Island. Known for nutmeg and pristine beaches.",
+  },
+  {
+    code: "DOM",
+    name: "Dominica",
+    country: "Dominica",
+    flag: "🇩🇲",
+    currencyCode: "XCD",
+    currencyName: "East Caribbean Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us"],
+    description: "Nature Island. Rainforests, waterfalls, eco-tourism.",
+  },
+  {
+    code: "SVD",
+    name: "St Vincent",
+    country: "St Vincent and the Grenadines",
+    flag: "🇻🇨",
+    currencyCode: "XCD",
+    currencyName: "East Caribbean Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us"],
+    description: "Grenadines islands. Sailing paradise.",
+  },
+  {
+    code: "SKB",
+    name: "St Kitts",
+    country: "St Kitts and Nevis",
+    flag: "🇰🇳",
+    currencyCode: "XCD",
+    currencyName: "East Caribbean Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us"],
+    description: "Sugar heritage. Citizenship by investment programme.",
+  },
+  {
+    code: "NAS",
+    name: "Bahamas",
+    country: "The Bahamas",
+    flag: "🇧🇸",
+    currencyCode: "BSD",
+    currencyName: "Bahamian Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["us", "uk", "canada"],
+    description: "700 islands. Nassau, Paradise Island, Exumas.",
+  },
+  {
+    code: "BZE",
+    name: "Belize",
+    country: "Belize",
+    flag: "🇧🇿",
+    currencyCode: "BZD",
+    currencyName: "Belize Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["us"],
+    description: "Central American Caribbean. Mayan ruins, barrier reef.",
+  },
+  {
+    code: "BDA",
+    name: "Bermuda",
+    country: "Bermuda",
+    flag: "🇧🇲",
+    currencyCode: "BMD",
+    currencyName: "Bermudian Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us"],
+    description: "North Atlantic. British territory, pink sand beaches.",
+  },
+  {
+    code: "EIS",
+    name: "British Virgin Islands",
+    country: "British Virgin Islands",
+    flag: "🇻🇬",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us"],
+    description: "Sailing capital. Tortola, Virgin Gorda.",
+  },
+  {
+    code: "GCM",
+    name: "Cayman Islands",
+    country: "Cayman Islands",
+    flag: "🇰🇾",
+    currencyCode: "KYD",
+    currencyName: "Cayman Islands Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["uk", "us"],
+    description: "Financial centre. Seven Mile Beach, diving.",
+  },
+  {
+    code: "PLS",
+    name: "Turks & Caicos",
+    country: "Turks and Caicos Islands",
+    flag: "🇹🇨",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
+    peggedToUSD: true,
+    region: "anglophone",
+    popularFrom: ["us", "uk", "canada"],
+    description: "Grace Bay Beach. Luxury resorts.",
   },
 
-  // Eastern Caribbean Dollar (XCD) countries
+  // ═══════════════════════════════════════════════════════════════════
+  // FRENCH CARIBBEAN
+  // ═══════════════════════════════════════════════════════════════════
   {
-    code: "saint-lucia",
-    name: "Saint Lucia",
-    flag: "🇱🇨",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
-    peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: true,
+    code: "FDF",
+    name: "Martinique",
+    country: "Martinique",
+    flag: "🇲🇶",
+    currencyCode: "EUR",
+    currencyName: "Euro",
+    peggedToUSD: false,
+    region: "french",
+    popularFrom: ["france", "us", "canada"],
+    description: "French overseas region. Rum, beaches, Mount Pelée.",
   },
   {
-    code: "grenada",
-    name: "Grenada",
-    flag: "🇬🇩",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
-    peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: true,
+    code: "PTP",
+    name: "Guadeloupe",
+    country: "Guadeloupe",
+    flag: "🇬🇵",
+    currencyCode: "EUR",
+    currencyName: "Euro",
+    peggedToUSD: false,
+    region: "french",
+    popularFrom: ["france", "us", "canada"],
+    description: "Butterfly-shaped islands. French Caribbean culture.",
   },
   {
-    code: "antigua",
-    name: "Antigua & Barbuda",
-    flag: "🇦🇬",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
-    peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: true,
+    code: "SFG",
+    name: "Saint Martin",
+    country: "Saint Martin (French)",
+    flag: "🇲🇫",
+    currencyCode: "EUR",
+    currencyName: "Euro",
+    peggedToUSD: false,
+    region: "french",
+    popularFrom: ["france", "us", "netherlands"],
+    description: "French side of shared island. Cuisine, beaches.",
   },
   {
-    code: "dominica",
-    name: "Dominica",
-    flag: "🇩🇲",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
+    code: "SBH",
+    name: "St Barthélemy",
+    country: "Saint Barthélemy",
+    flag: "🇧🇱",
+    currencyCode: "EUR",
+    currencyName: "Euro",
+    peggedToUSD: false,
+    region: "french",
+    popularFrom: ["france", "us"],
+    description: "Luxury island. Celebrity destination, high-end resorts.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // DUTCH CARIBBEAN
+  // ═══════════════════════════════════════════════════════════════════
+  {
+    code: "AUA",
+    name: "Aruba",
+    country: "Aruba",
+    flag: "🇦🇼",
+    currencyCode: "AWG",
+    currencyName: "Aruban Florin",
     peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: false,
+    region: "dutch",
+    popularFrom: ["netherlands", "us", "canada"],
+    description: "One Happy Island. Desert climate, pristine beaches.",
   },
   {
-    code: "st-kitts",
-    name: "Saint Kitts & Nevis",
-    flag: "🇰🇳",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
+    code: "CUR",
+    name: "Curaçao",
+    country: "Curaçao",
+    flag: "🇨🇼",
+    currencyCode: "ANG",
+    currencyName: "Netherlands Antillean Guilder",
     peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: false,
+    region: "dutch",
+    popularFrom: ["netherlands", "us"],
+    description: "Willemstad's colourful architecture. Diving, culture.",
   },
   {
-    code: "st-vincent",
-    name: "Saint Vincent & the Grenadines",
-    flag: "🇻🇨",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
+    code: "SXM",
+    name: "Sint Maarten",
+    country: "Sint Maarten (Dutch)",
+    flag: "🇸🇽",
+    currencyCode: "ANG",
+    currencyName: "Netherlands Antillean Guilder",
     peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: false,
+    region: "dutch",
+    popularFrom: ["netherlands", "us", "france"],
+    description: "Dutch side of shared island. Maho Beach plane landings.",
   },
   {
-    code: "anguilla",
-    name: "Anguilla",
-    flag: "🇦🇮",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
+    code: "BON",
+    name: "Bonaire",
+    country: "Bonaire",
+    flag: "🇧🇶",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
     peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: false,
+    region: "dutch",
+    popularFrom: ["netherlands", "us"],
+    description: "Divers' paradise. Special municipality of Netherlands.",
   },
   {
-    code: "montserrat",
-    name: "Montserrat",
-    flag: "🇲🇸",
-    currency: "Eastern Caribbean Dollar",
-    currencyCode: "XCD",
+    code: "SAB",
+    name: "Saba",
+    country: "Saba",
+    flag: "🇧🇶",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
     peggedToUSD: true,
-    pegRate: 2.7,
-    region: "eastern-caribbean",
-    popular: false,
+    region: "dutch",
+    popularFrom: ["netherlands"],
+    description: "Unspoiled nature. Hiking, diving. Smallest island.",
+  },
+  {
+    code: "EUX",
+    name: "Sint Eustatius",
+    country: "Sint Eustatius",
+    flag: "🇧🇶",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
+    peggedToUSD: true,
+    region: "dutch",
+    popularFrom: ["netherlands"],
+    description: "Statia. Historic trading post, diving.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SPANISH CARIBBEAN
+  // ═══════════════════════════════════════════════════════════════════
+  {
+    code: "SDQ",
+    name: "Dominican Republic",
+    country: "Dominican Republic",
+    flag: "🇩🇴",
+    currencyCode: "DOP",
+    currencyName: "Dominican Peso",
+    peggedToUSD: false,
+    region: "spanish",
+    popularFrom: ["us", "canada", "uk"],
+    description: "Punta Cana, Santo Domingo. Largest Caribbean tourism.",
+  },
+  {
+    code: "SJU",
+    name: "Puerto Rico",
+    country: "Puerto Rico",
+    flag: "🇵🇷",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
+    peggedToUSD: true,
+    region: "spanish",
+    popularFrom: ["us"],
+    description: "US territory. Old San Juan, El Yunque rainforest.",
+  },
+  {
+    code: "HAV",
+    name: "Cuba",
+    country: "Cuba",
+    flag: "🇨🇺",
+    currencyCode: "CUP",
+    currencyName: "Cuban Peso",
+    peggedToUSD: false,
+    region: "spanish",
+    popularFrom: ["canada", "uk"],
+    description: "Havana, classic cars. Restricted for US travellers.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // OTHER
+  // ═══════════════════════════════════════════════════════════════════
+  {
+    code: "PAP",
+    name: "Haiti",
+    country: "Haiti",
+    flag: "🇭🇹",
+    currencyCode: "HTG",
+    currencyName: "Haitian Gourde",
+    peggedToUSD: false,
+    region: "other",
+    popularFrom: ["us", "canada", "france"],
+    description: "French Creole heritage. Citadelle Laferrière.",
+  },
+  {
+    code: "STT",
+    name: "US Virgin Islands",
+    country: "US Virgin Islands",
+    flag: "🇻🇮",
+    currencyCode: "USD",
+    currencyName: "US Dollar",
+    peggedToUSD: true,
+    region: "other",
+    popularFrom: ["us"],
+    description: "St Thomas, St Croix, St John. US territory.",
   },
 ];
 
 export function getDestination(code: string): Destination | undefined {
-  return destinations.find((d) => d.code === code);
+  return destinations.find(d => d.code === code);
+}
+
+export function getDestinationsByRegion(region: Destination["region"]): Destination[] {
+  return destinations.filter(d => d.region === region);
 }
 
 export function getPopularDestinations(): Destination[] {
-  return destinations.filter((d) => d.popular);
+  // Return most popular ones for homepage display
+  const popular = ["BGI", "KIN", "POS", "GEO", "ANU", "UVF", "AUA", "FDF"];
+  return destinations.filter(d => popular.includes(d.code));
 }
 
-export function getDestinationsByRegion(region: string): Destination[] {
-  return destinations.filter((d) => d.region === region);
+export function getDestinationsFrom(origin: string): Destination[] {
+  return destinations.filter(d => d.popularFrom.includes(origin));
 }
 
-export function getPeggedDestinations(): Destination[] {
-  return destinations.filter((d) => d.peggedToUSD);
+export function getAllDestinations(): Destination[] {
+  return destinations;
 }
 
-export function getXCDCountries(): Destination[] {
-  return destinations.filter((d) => d.currencyCode === "XCD");
+export function getDestinationCount(): number {
+  return destinations.length;
 }

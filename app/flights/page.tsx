@@ -99,6 +99,16 @@ export default function FlightsPage() {
           <p className="mt-3 text-gray-300 max-w-2xl">
             Find the cheapest flights to the Caribbean from the UK, USA, Canada, France, and Netherlands.
           </p>
+          
+          {/* AI Finder CTA */}
+          <Link
+            href="/flights/finder"
+            className="mt-6 inline-flex items-center gap-2 bg-gold hover:bg-gold-light text-navy font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            <span className="text-xl">🤖</span>
+            Try AI Flight Finder
+            <span className="text-xs bg-navy/20 px-2 py-0.5 rounded">New</span>
+          </Link>
         </div>
       </section>
 
