@@ -26,23 +26,46 @@ const flightData = {
       BGI: { low: 450, high: 900, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
       KIN: { low: 480, high: 950, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
       POS: { low: 520, high: 1000, airlines: ["British Airways", "Caribbean Airlines"], direct: true, bestMonths: "Sep-Nov" },
+      GEO: { low: 580, high: 1100, airlines: ["British Airways", "Caribbean Airlines"], direct: false, bestMonths: "Sep-Nov" },
       ANU: { low: 480, high: 900, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
       UVF: { low: 500, high: 950, airlines: ["British Airways", "Virgin Atlantic", "TUI"], direct: true, bestMonths: "Sep-Nov" },
       GND: { low: 550, high: 1000, airlines: ["British Airways"], direct: true, bestMonths: "Sep-Nov" },
+      DOM: { low: 580, high: 1050, airlines: ["British Airways"], direct: false, bestMonths: "Sep-Nov" },
+      SVD: { low: 600, high: 1100, airlines: ["British Airways"], direct: false, bestMonths: "Sep-Nov" },
+      SKB: { low: 520, high: 980, airlines: ["British Airways"], direct: true, bestMonths: "Sep-Nov" },
+      NAS: { low: 500, high: 950, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
+      BDA: { low: 480, high: 900, airlines: ["British Airways"], direct: true, bestMonths: "Sep-Nov" },
+      GCM: { low: 550, high: 1050, airlines: ["British Airways", "Cayman Airways"], direct: true, bestMonths: "Sep-Nov" },
+      PLS: { low: 550, high: 1000, airlines: ["British Airways", "TUI"], direct: true, bestMonths: "Sep-Nov" },
+      HAV: { low: 500, high: 950, airlines: ["Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
     },
   },
   us: {
     miami: {
       BGI: { low: 280, high: 550, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
       KIN: { low: 180, high: 400, airlines: ["JetBlue", "American", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
+      POS: { low: 320, high: 600, airlines: ["Caribbean Airlines", "American"], direct: true, bestMonths: "Apr-Jun" },
+      NAS: { low: 120, high: 300, airlines: ["American", "Bahamasair", "Silver"], direct: true, bestMonths: "Apr-Jun" },
       AUA: { low: 200, high: 450, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
       CUR: { low: 250, high: 500, airlines: ["American", "JetBlue"], direct: true, bestMonths: "Apr-Jun" },
       SXM: { low: 220, high: 480, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
+      SDQ: { low: 180, high: 400, airlines: ["JetBlue", "American", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
+      PUJ: { low: 200, high: 450, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
+      SJU: { low: 150, high: 350, airlines: ["JetBlue", "American", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
+      STT: { low: 200, high: 450, airlines: ["American", "JetBlue", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
+      GCM: { low: 180, high: 400, airlines: ["Cayman Airways", "American"], direct: true, bestMonths: "Apr-Jun" },
+      PAP: { low: 280, high: 550, airlines: ["American", "JetBlue"], direct: true, bestMonths: "Apr-Jun" },
     },
     newyork: {
       BGI: { low: 350, high: 700, airlines: ["JetBlue", "Caribbean Airlines"], direct: true, bestMonths: "Apr-Jun" },
       KIN: { low: 280, high: 550, airlines: ["JetBlue", "Delta"], direct: true, bestMonths: "Apr-Jun" },
       POS: { low: 380, high: 750, airlines: ["Caribbean Airlines", "JetBlue"], direct: true, bestMonths: "Apr-Jun" },
+      ANU: { low: 350, high: 700, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
+      UVF: { low: 380, high: 750, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
+      AUA: { low: 320, high: 650, airlines: ["JetBlue", "United"], direct: true, bestMonths: "Apr-Jun" },
+      SXM: { low: 300, high: 600, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
+      SDQ: { low: 280, high: 550, airlines: ["JetBlue", "Delta"], direct: true, bestMonths: "Apr-Jun" },
+      SJU: { low: 200, high: 450, airlines: ["JetBlue", "Delta", "United"], direct: true, bestMonths: "Apr-Jun" },
     },
   },
   france: {
@@ -50,6 +73,9 @@ const flightData = {
       FDF: { low: 350, high: 700, airlines: ["Air France", "Corsair", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
       PTP: { low: 350, high: 700, airlines: ["Air France", "Corsair", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
       SFG: { low: 400, high: 800, airlines: ["Air France", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
+      SBH: { low: 550, high: 1000, airlines: ["Air France", "Air Caraïbes"], direct: false, bestMonths: "May, Sep-Oct" },
+      CAY: { low: 500, high: 950, airlines: ["Air France", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
+      PAP: { low: 550, high: 1000, airlines: ["Air France"], direct: false, bestMonths: "May, Sep-Oct" },
     },
   },
   netherlands: {
@@ -58,6 +84,7 @@ const flightData = {
       CUR: { low: 500, high: 950, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
       SXM: { low: 520, high: 980, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
       BON: { low: 550, high: 1000, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
+      PBM: { low: 600, high: 1100, airlines: ["KLM", "Surinam Airways"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
     },
   },
   canada: {
@@ -65,25 +92,68 @@ const flightData = {
       BGI: { low: 550, high: 1100, airlines: ["WestJet", "Air Canada", "Sunwing"], direct: true, bestMonths: "Jan-Mar" },
       KIN: { low: 400, high: 850, airlines: ["WestJet", "Air Canada", "Sunwing"], direct: true, bestMonths: "Jan-Mar" },
       POS: { low: 600, high: 1200, airlines: ["Caribbean Airlines", "Air Canada"], direct: true, bestMonths: "Jan-Mar" },
+      ANU: { low: 580, high: 1150, airlines: ["Air Canada", "WestJet"], direct: true, bestMonths: "Jan-Mar" },
       CUR: { low: 650, high: 1300, airlines: ["WestJet", "Air Canada"], direct: false, bestMonths: "Jan-Mar" },
+      AUA: { low: 600, high: 1200, airlines: ["WestJet", "Air Canada"], direct: true, bestMonths: "Jan-Mar" },
+      SDQ: { low: 450, high: 900, airlines: ["WestJet", "Air Canada", "Sunwing"], direct: true, bestMonths: "Jan-Mar" },
+      PUJ: { low: 480, high: 950, airlines: ["WestJet", "Sunwing", "Air Transat"], direct: true, bestMonths: "Jan-Mar" },
+      HAV: { low: 400, high: 850, airlines: ["Air Canada", "Sunwing", "Air Transat"], direct: true, bestMonths: "Jan-Mar" },
     },
   },
 };
 
 const destinationNames: Record<string, { name: string; flag: string }> = {
+  // Anglophone
   BGI: { name: "Barbados", flag: "🇧🇧" },
   KIN: { name: "Jamaica", flag: "🇯🇲" },
   POS: { name: "Trinidad", flag: "🇹🇹" },
+  TAB: { name: "Tobago", flag: "🇹🇹" },
+  GEO: { name: "Guyana", flag: "🇬🇾" },
   ANU: { name: "Antigua", flag: "🇦🇬" },
+  BBQ: { name: "Barbuda", flag: "🇦🇬" },
   UVF: { name: "St Lucia", flag: "🇱🇨" },
   GND: { name: "Grenada", flag: "🇬🇩" },
+  CRU: { name: "Carriacou", flag: "🇬🇩" },
+  DOM: { name: "Dominica", flag: "🇩🇲" },
+  SVD: { name: "St Vincent", flag: "🇻🇨" },
+  BQU: { name: "Bequia", flag: "🇻🇨" },
+  MUB: { name: "Mustique", flag: "🇻🇨" },
+  SKB: { name: "St Kitts", flag: "🇰🇳" },
+  NEV: { name: "Nevis", flag: "🇰🇳" },
+  NAS: { name: "Bahamas", flag: "🇧🇸" },
+  BZE: { name: "Belize", flag: "🇧🇿" },
+  BDA: { name: "Bermuda", flag: "🇧🇲" },
+  EIS: { name: "British Virgin Islands", flag: "🇻🇬" },
+  GCM: { name: "Cayman Islands", flag: "🇰🇾" },
+  PLS: { name: "Turks & Caicos", flag: "🇹🇨" },
+  AXA: { name: "Anguilla", flag: "🇦🇮" },
+  MNI: { name: "Montserrat", flag: "🇲🇸" },
+  
+  // French
+  FDF: { name: "Martinique", flag: "🇲🇶" },
+  PTP: { name: "Guadeloupe", flag: "🇬🇵" },
+  SFG: { name: "Saint Martin", flag: "🇲🇫" },
+  SBH: { name: "St Barthélemy", flag: "🇧🇱" },
+  CAY: { name: "French Guiana", flag: "🇬🇫" },
+  
+  // Dutch
   AUA: { name: "Aruba", flag: "🇦🇼" },
   CUR: { name: "Curaçao", flag: "🇨🇼" },
   SXM: { name: "Sint Maarten", flag: "🇸🇽" },
   BON: { name: "Bonaire", flag: "🇧🇶" },
-  FDF: { name: "Martinique", flag: "🇲🇶" },
-  PTP: { name: "Guadeloupe", flag: "🇬🇵" },
-  SFG: { name: "Saint Martin", flag: "🇲🇫" },
+  SAB: { name: "Saba", flag: "🇧🇶" },
+  EUX: { name: "Sint Eustatius", flag: "🇧🇶" },
+  PBM: { name: "Suriname", flag: "🇸🇷" },
+  
+  // Spanish
+  SDQ: { name: "Dominican Republic", flag: "🇩🇴" },
+  PUJ: { name: "Punta Cana", flag: "🇩🇴" },
+  SJU: { name: "Puerto Rico", flag: "🇵🇷" },
+  HAV: { name: "Cuba", flag: "🇨🇺" },
+  
+  // Other
+  PAP: { name: "Haiti", flag: "🇭🇹" },
+  STT: { name: "US Virgin Islands", flag: "🇻🇮" },
 };
 
 function generateSearchUrl(origin: string, dest: string): string {
@@ -117,19 +187,53 @@ function parseUserQuery(query: string): { origin?: string; city?: string; destin
   }
   
   let destination: string | undefined;
+  // Anglophone
   if (q.includes("barbados")) destination = "BGI";
   else if (q.includes("jamaica")) destination = "KIN";
   else if (q.includes("trinidad")) destination = "POS";
+  else if (q.includes("tobago")) destination = "TAB";
+  else if (q.includes("guyana")) destination = "GEO";
   else if (q.includes("antigua")) destination = "ANU";
+  else if (q.includes("barbuda")) destination = "BBQ";
   else if (q.includes("st lucia") || q.includes("saint lucia")) destination = "UVF";
   else if (q.includes("grenada")) destination = "GND";
-  else if (q.includes("aruba")) destination = "AUA";
-  else if (q.includes("curacao") || q.includes("curaçao")) destination = "CUR";
-  else if (q.includes("sint maarten") || q.includes("st maarten")) destination = "SXM";
+  else if (q.includes("carriacou")) destination = "CRU";
+  else if (q.includes("dominica") && !q.includes("dominican")) destination = "DOM";
+  else if (q.includes("st vincent") || q.includes("saint vincent")) destination = "SVD";
+  else if (q.includes("bequia")) destination = "BQU";
+  else if (q.includes("mustique")) destination = "MUB";
+  else if (q.includes("st kitts") || q.includes("saint kitts")) destination = "SKB";
+  else if (q.includes("nevis")) destination = "NEV";
+  else if (q.includes("bahamas") || q.includes("nassau")) destination = "NAS";
+  else if (q.includes("belize")) destination = "BZE";
+  else if (q.includes("bermuda")) destination = "BDA";
+  else if (q.includes("british virgin") || q.includes("bvi") || q.includes("tortola")) destination = "EIS";
+  else if (q.includes("cayman")) destination = "GCM";
+  else if (q.includes("turks") || q.includes("caicos")) destination = "PLS";
+  else if (q.includes("anguilla")) destination = "AXA";
+  else if (q.includes("montserrat")) destination = "MNI";
+  // French
   else if (q.includes("martinique")) destination = "FDF";
   else if (q.includes("guadeloupe")) destination = "PTP";
   else if (q.includes("saint martin") || q.includes("st martin")) destination = "SFG";
+  else if (q.includes("st barth") || q.includes("saint barth") || q.includes("st barts")) destination = "SBH";
+  else if (q.includes("french guiana") || q.includes("guyane")) destination = "CAY";
+  // Dutch
+  else if (q.includes("aruba")) destination = "AUA";
+  else if (q.includes("curacao") || q.includes("curaçao")) destination = "CUR";
+  else if (q.includes("sint maarten") || q.includes("st maarten")) destination = "SXM";
   else if (q.includes("bonaire")) destination = "BON";
+  else if (q.includes("saba")) destination = "SAB";
+  else if (q.includes("statia") || q.includes("sint eustatius") || q.includes("st eustatius")) destination = "EUX";
+  else if (q.includes("suriname") || q.includes("paramaribo")) destination = "PBM";
+  // Spanish
+  else if (q.includes("dominican") || q.includes("santo domingo")) destination = "SDQ";
+  else if (q.includes("punta cana")) destination = "PUJ";
+  else if (q.includes("puerto rico") || q.includes("san juan")) destination = "SJU";
+  else if (q.includes("cuba") || q.includes("havana")) destination = "HAV";
+  // Other
+  else if (q.includes("haiti") || q.includes("port-au-prince")) destination = "PAP";
+  else if (q.includes("us virgin") || q.includes("usvi") || q.includes("st thomas") || q.includes("st croix")) destination = "STT";
   
   let budget: number | undefined;
   const budgetMatch = q.match(/(\d+)/);
