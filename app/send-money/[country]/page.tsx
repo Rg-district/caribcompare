@@ -7,7 +7,7 @@ type Props = {
   params: Promise<{ country: string }>;
 };
 
-const validCountries = ["uk", "us", "canada"] as const;
+const validCountries = ["uk", "us", "canada", "france", "netherlands"] as const;
 
 export async function generateStaticParams() {
   return validCountries.map((country) => ({ country }));
