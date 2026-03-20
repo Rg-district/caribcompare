@@ -10,7 +10,7 @@ export default function Footer() {
               Carib<span className="text-gold">Compare</span>
             </h3>
             <p className="text-sm text-gray-300">
-              Independent comparison service for Caribbean residents. We may
+              Independent comparison service for Caribbean residents and visitors. We may
               earn a commission from partners at no cost to you.
             </p>
           </div>
