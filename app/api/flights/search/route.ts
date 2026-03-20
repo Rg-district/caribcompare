@@ -284,11 +284,15 @@ async function searchFlights(params: FlightSearchRequest): Promise<ParsedFlightR
 
   console.log('Successfully parsed offers:', parsedOffers.length);
 
+  // Filter out Duffel Airways test results
+  const filtered = parsedOffers.filter(offer => !offer.airline.toLowerCase().includes('duffel'));
+  console.log('After filtering Duffel Airways:', filtered.length);
+
   // Sort by price (ascending)
-  parsedOffers.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
+  filtered.sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
 
   // Return top 10 results
-  return parsedOffers.slice(0, 10);
+  return filtered.slice(0, 10);
 }
 
 export async function POST(request: NextRequest) {

@@ -1,14 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-  flightResults?: FlightResult[];
-  isSearching?: boolean;
-};
 
 type FlightResult = {
   id: string;
@@ -42,164 +35,69 @@ type FlightResult = {
   category?: 'cheapest' | 'fastest' | 'best-value';
 };
 
-// IATA code mappings
-const cityToIata: Record<string, string> = {
-  london: "LHR",
-  manchester: "MAN", 
-  newyork: "JFK",
-  "new york": "JFK",
-  nyc: "JFK",
-  miami: "MIA",
-  toronto: "YYZ",
-  paris: "CDG",
-  amsterdam: "AMS"
-};
+// Origin cities including Caribbean for outbound travel
+const originCities = [
+  // International origins
+  { code: "LHR", name: "London", country: "UK" },
+  { code: "MAN", name: "Manchester", country: "UK" },
+  { code: "JFK", name: "New York", country: "USA" },
+  { code: "MIA", name: "Miami", country: "USA" },
+  { code: "YYZ", name: "Toronto", country: "Canada" },
+  { code: "CDG", name: "Paris", country: "France" },
+  { code: "AMS", name: "Amsterdam", country: "Netherlands" },
+  // Caribbean origins  
+  { code: "BGI", name: "Barbados", country: "Caribbean" },
+  { code: "KIN", name: "Jamaica", country: "Caribbean" },
+  { code: "POS", name: "Trinidad", country: "Caribbean" },
+  { code: "ANU", name: "Antigua", country: "Caribbean" },
+  { code: "UVF", name: "St Lucia", country: "Caribbean" },
+  { code: "GND", name: "Grenada", country: "Caribbean" },
+  { code: "NAS", name: "Bahamas", country: "Caribbean" },
+  { code: "GCM", name: "Cayman Islands", country: "Caribbean" },
+  { code: "SXM", name: "Sint Maarten", country: "Caribbean" },
+  { code: "AUA", name: "Aruba", country: "Caribbean" },
+  { code: "CUR", name: "Curaçao", country: "Caribbean" },
+  { code: "BDA", name: "Bermuda", country: "Caribbean" }
+];
 
-const caribbeanDestinations: Record<string, string> = {
-  barbados: "BGI",
-  jamaica: "KIN",
-  "trinidad": "POS",
-  "tobago": "POS", 
-  antigua: "ANU",
-  "st lucia": "UVF",
-  "saint lucia": "UVF",
-  grenada: "GND", 
-  "st vincent": "SVD",
-  "saint vincent": "SVD",
-  dominica: "DOM",
-  "st kitts": "SKB",
-  "saint kitts": "SKB",
-  "nevis": "SKB",
-  bahamas: "NAS",
-  nassau: "NAS",
-  bermuda: "BDA",
-  "cayman": "GCM",
-  "cayman islands": "GCM",
-  "turks and caicos": "PLS",
-  "turks caicos": "PLS",
-  aruba: "AUA",
-  "curacao": "CUR",
-  "curaçao": "CUR",
-  "sint maarten": "SXM",
-  "st maarten": "SXM",
-  "saint martin": "SXM",
-  martinique: "FDF",
-  guadeloupe: "PTP",
-  "dominican republic": "SDQ",
-  "santo domingo": "SDQ",
-  "punta cana": "PUJ",
-  "puerto rico": "SJU",
-  "san juan": "SJU"
-};
+// All destinations (Caribbean + International)
+const allDestinations = [
+  // Caribbean destinations
+  { code: "BGI", name: "Barbados", flag: "🇧🇧", type: "Caribbean" },
+  { code: "KIN", name: "Jamaica", flag: "🇯🇲", type: "Caribbean" },
+  { code: "POS", name: "Trinidad", flag: "🇹🇹", type: "Caribbean" },
+  { code: "ANU", name: "Antigua", flag: "🇦🇬", type: "Caribbean" },
+  { code: "UVF", name: "St Lucia", flag: "🇱🇨", type: "Caribbean" },
+  { code: "GND", name: "Grenada", flag: "🇬🇩", type: "Caribbean" },
+  { code: "NAS", name: "Bahamas", flag: "🇧🇸", type: "Caribbean" },
+  { code: "GCM", name: "Cayman Islands", flag: "🇰🇾", type: "Caribbean" },
+  { code: "SXM", name: "Sint Maarten", flag: "🇸🇽", type: "Caribbean" },
+  { code: "AUA", name: "Aruba", flag: "🇦🇼", type: "Caribbean" },
+  { code: "CUR", name: "Curaçao", flag: "🇨🇼", type: "Caribbean" },
+  { code: "BDA", name: "Bermuda", flag: "🇧🇲", type: "Caribbean" },
+  { code: "PLS", name: "Turks & Caicos", flag: "🇹🇨", type: "Caribbean" },
+  { code: "SDQ", name: "Dominican Republic", flag: "🇩🇴", type: "Caribbean" },
+  { code: "SJU", name: "Puerto Rico", flag: "🇵🇷", type: "Caribbean" },
+  { code: "FDF", name: "Martinique", flag: "🇲🇶", type: "Caribbean" },
+  { code: "PTP", name: "Guadeloupe", flag: "🇬🇵", type: "Caribbean" },
+  // International destinations
+  { code: "LHR", name: "London", flag: "🇬🇧", type: "International" },
+  { code: "MAN", name: "Manchester", flag: "🇬🇧", type: "International" },
+  { code: "JFK", name: "New York", flag: "🇺🇸", type: "International" },
+  { code: "MIA", name: "Miami", flag: "🇺🇸", type: "International" },
+  { code: "YYZ", name: "Toronto", flag: "🇨🇦", type: "International" },
+  { code: "CDG", name: "Paris", flag: "🇫🇷", type: "International" },
+  { code: "AMS", name: "Amsterdam", flag: "🇳🇱", type: "International" }
+];
 
-// Flight search conversation states
-type ConversationState = 'initial' | 'need_origin' | 'need_destination' | 'need_dates' | 'searching' | 'results';
+type Step = 1 | 2 | 3 | 4;
 
-interface SearchParams {
-  origin?: string;
-  destination?: string;
-  departure_date?: string;
-  return_date?: string;
-  passengers?: number;
-}
-
-function parseUserInput(input: string): {
-  origin?: string;
-  destination?: string;
-  departure_date?: string;
-  return_date?: string;
-  passengers?: number;
-  intent?: string;
-} {
-  const text = input.toLowerCase().trim();
-  
-  // Look for origin cities
-  let origin: string | undefined;
-  for (const [city, code] of Object.entries(cityToIata)) {
-    if (text.includes(city)) {
-      origin = code;
-      break;
-    }
-  }
-  
-  // Look for Caribbean destinations
-  let destination: string | undefined;
-  for (const [place, code] of Object.entries(caribbeanDestinations)) {
-    if (text.includes(place)) {
-      destination = code;
-      break;
-    }
-  }
-  
-  // Look for dates (very basic parsing)
-  let departure_date: string | undefined;
-  let return_date: string | undefined;
-  
-  // Look for specific date formats
-  const dateMatches = text.match(/(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\s+(january|february|march|april|may|june|july|august|september|october|november|december|\w{3})\s+\d{4})/gi);
-  if (dateMatches) {
-    departure_date = dateMatches[0];
-    if (dateMatches.length > 1) {
-      return_date = dateMatches[1];
-    }
-  }
-  
-  // Look for relative dates
-  if (text.includes('tomorrow')) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    departure_date = tomorrow.toISOString().split('T')[0];
-  } else if (text.includes('next week')) {
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    departure_date = nextWeek.toISOString().split('T')[0];
-  }
-  
-  // Look for passengers
-  let passengers: number | undefined;
-  const passengerMatch = text.match(/(\d+)\s*(passenger|person|people|adult)/);
-  if (passengerMatch) {
-    passengers = parseInt(passengerMatch[1]);
-  }
-  
-  // Determine intent
-  let intent: string | undefined;
-  if (text.includes('search') || text.includes('find') || text.includes('look')) {
-    intent = 'search';
-  } else if (text.includes('flexible') || text.includes('any date')) {
-    intent = 'flexible';
-  } else if (text.includes('return') || text.includes('round trip')) {
-    intent = 'return';
-  } else if (text.includes('one way') || text.includes('single')) {
-    intent = 'oneway';
-  }
-  
-  return { origin, destination, departure_date, return_date, passengers, intent };
-}
-
-async function searchFlights(params: SearchParams): Promise<FlightResult[]> {
-  const response = await fetch('/api/flights/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      origin: params.origin,
-      destination: params.destination,
-      departure_date: params.departure_date,
-      return_date: params.return_date,
-      passengers: params.passengers || 1,
-      cabin_class: 'economy'
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.details || 'Failed to search flights');
-  }
-
-  const data = await response.json();
-  return data.data || [];
+interface SearchForm {
+  origin: string;
+  destination: string;
+  departure_date: string;
+  return_date: string;
+  passengers: number;
 }
 
 function categorizeFlights(flights: FlightResult[]): FlightResult[] {
@@ -213,7 +111,6 @@ function categorizeFlights(flights: FlightResult[]): FlightResult[] {
   // Sort by stops then duration for fastest
   const sortedBySpeed = [...flights].sort((a, b) => {
     if (a.stops !== b.stops) return a.stops - b.stops;
-    // Parse duration for comparison
     const aDuration = parseDurationToMinutes(a.duration);
     const bDuration = parseDurationToMinutes(b.duration);
     return aDuration - bDuration;
@@ -254,15 +151,11 @@ function calculateValueScore(flight: FlightResult, allFlights: FlightResult[]): 
   const minPrice = Math.min(...prices);
   const priceRange = maxPrice - minPrice;
   
-  // Normalize price (lower is better)
   const priceScore = priceRange > 0 ? 1 - ((parseFloat(flight.price.amount) - minPrice) / priceRange) : 1;
-  
-  // Convenience score (fewer stops is better, shorter duration is better)
   const stopsScore = flight.stops === 0 ? 1 : flight.stops === 1 ? 0.7 : 0.3;
   const durationMinutes = parseDurationToMinutes(flight.duration);
-  const durationScore = Math.max(0, 1 - (durationMinutes - 300) / 600); // 5-15 hour scale
+  const durationScore = Math.max(0, 1 - (durationMinutes - 300) / 600);
   
-  // Weighted combination
   return priceScore * 0.6 + stopsScore * 0.25 + durationScore * 0.15;
 }
 
@@ -273,120 +166,97 @@ function formatCurrency(amount: string, currency: string): string {
 }
 
 export default function FlightFinderPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "🛫 Hi! I'm your Caribbean flight finder.\n\nI'll help you find real-time flights to the Caribbean. Just tell me:\n\n• Where you're flying from (London, Manchester, New York, Miami, Toronto, Paris, Amsterdam)\n• Where you want to go in the Caribbean\n• Your travel dates\n\nTry: \"Flights from London to Barbados on March 25th\""
-    },
-  ]);
-  const [input, setInput] = useState("");
+  const [currentStep, setCurrentStep] = useState<Step>(1);
+  const [searchForm, setSearchForm] = useState<SearchForm>({
+    origin: "",
+    destination: "",
+    departure_date: "",
+    return_date: "",
+    passengers: 1
+  });
+  const [searchResults, setSearchResults] = useState<FlightResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [conversationState, setConversationState] = useState<ConversationState>('initial');
-  const [searchParams, setSearchParams] = useState<SearchParams>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleNext = () => {
+    if (currentStep < 4) {
+      setCurrentStep((prev) => (prev + 1) as Step);
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isSearching) return;
-
-    const userMessage = input.trim();
-    setInput("");
-    
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
-
-    // Parse user input
-    const parsed = parseUserInput(userMessage);
-    const updatedParams = { ...searchParams, ...parsed };
-    setSearchParams(updatedParams);
-
-    // Determine next step in conversation
-    await handleConversationFlow(userMessage, updatedParams, parsed);
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as Step);
+    }
   };
 
-  const handleConversationFlow = async (userMessage: string, params: SearchParams, parsed: any) => {
+  const handleSearch = async () => {
+    if (!searchForm.origin || !searchForm.destination || !searchForm.departure_date) {
+      setSearchError("Please complete all required fields");
+      return;
+    }
+
     setIsSearching(true);
+    setSearchError(null);
 
     try {
-      // Check if we have everything needed to search
-      if (params.origin && params.destination && params.departure_date) {
-        // We have enough to search!
-        setConversationState('searching');
-        
-        const searchingMessage: Message = {
-          role: "assistant",
-          content: "🔍 Searching for real-time flights...\n\nI'm checking with airlines for the best prices. This may take a moment.",
-          isSearching: true
-        };
-        
-        setMessages(prev => [...prev, searchingMessage]);
+      const response = await fetch('/api/flights/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin: searchForm.origin,
+          destination: searchForm.destination,
+          departure_date: searchForm.departure_date,
+          return_date: searchForm.return_date || undefined,
+          passengers: searchForm.passengers,
+          cabin_class: "economy"
+        })
+      });
 
-        try {
-          const flights = await searchFlights(params);
-          const categorizedFlights = categorizeFlights(flights);
-          
-          setConversationState('results');
-          
-          let resultMessage = "";
-          if (flights.length > 0) {
-            const returnText = params.return_date ? "return" : "one-way";
-            resultMessage = `✈️ Found ${flights.length} ${returnText} flights from ${params.origin} to ${params.destination}!\n\n**Prices are live from airlines** 🔥`;
-          } else {
-            resultMessage = "😔 No flights found for those dates. Try different dates or check if there are alternative nearby airports.";
-          }
-          
-          // Remove the searching message and add results
-          setMessages(prev => prev.slice(0, -1).concat([{
-            role: "assistant",
-            content: resultMessage,
-            flightResults: categorizedFlights
-          }]));
-          
-        } catch (error) {
-          setMessages(prev => prev.slice(0, -1).concat([{
-            role: "assistant",
-            content: `❌ Sorry, I encountered an error searching for flights: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again or check your search parameters.`
-          }]));
-        }
-        
-      } else {
-        // Guide user through missing information
-        await provideMissingInfoGuidance(params, parsed);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to search flights');
       }
+
+      const data = await response.json();
+      const categorizedFlights = categorizeFlights(data.data || []);
+      setSearchResults(categorizedFlights);
       
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchError(error instanceof Error ? error.message : 'Search failed');
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const provideMissingInfoGuidance = async (params: SearchParams, parsed: any) => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay
+  const getOriginName = (code: string): string => {
+    const origin = originCities.find(o => o.code === code);
+    return origin ? origin.name : code;
+  };
 
-    let response = "";
-    
-    if (!params.origin) {
-      setConversationState('need_origin');
-      response = "👋 I need to know where you're flying from!\n\n**Choose your departure city:**\n• 🇬🇧 London (LHR)\n• 🇬🇧 Manchester (MAN)\n• 🇺🇸 New York (JFK)\n• 🇺🇸 Miami (MIA)\n• 🇨🇦 Toronto (YYZ)\n• 🇫🇷 Paris (CDG)\n• 🇳🇱 Amsterdam (AMS)\n\nJust say the city name!";
-    } else if (!params.destination) {
-      setConversationState('need_destination');
-      response = `Great! Flying from ${params.origin} ✈️\n\n**Where in the Caribbean would you like to go?**\n\n🏝️ **Popular destinations:**\n• Barbados\n• Jamaica\n• Trinidad\n• Aruba\n• Curaçao\n• St Lucia\n• Antigua\n• Bahamas\n\nJust tell me the island or country!`;
-    } else if (!params.departure_date) {
-      setConversationState('need_dates');
-      response = `Perfect! ${params.origin} to ${params.destination} 🌴\n\n**When would you like to travel?**\n\nYou can say:\n• \"March 25th\"\n• \"2024-03-25\" \n• \"Tomorrow\"\n• \"Next week\"\n• \"I'm flexible with dates\"\n\nWould you like a return flight too?`;
+  const getDestinationName = (code: string): string => {
+    const dest = allDestinations.find(d => d.code === code);
+    return dest ? dest.name : code;
+  };
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1:
+        return searchForm.origin !== "";
+      case 2:
+        return searchForm.destination !== "";
+      case 3:
+        return searchForm.departure_date !== "";
+      case 4:
+        return true;
+      default:
+        return false;
     }
-    
-    setMessages(prev => [...prev, { role: "assistant", content: response }]);
   };
 
   const generateBookingUrl = (flight: FlightResult): string => {
-    // For demo purposes, create a search URL since we don't have Duffel booking links yet
     return `https://www.skyscanner.net/transport/flights/${flight.departure.airport}/${flight.arrival.airport}/`;
   };
 
@@ -403,130 +273,254 @@ export default function FlightFinderPage() {
             AI Flight Finder
           </h1>
           <p className="mt-2 text-gray-300">
-            Chat with our AI to find real-time flights to the Caribbean
+            Find flights with our step-by-step guide
           </p>
           <p className="text-sm text-gold">
-            ✨ Prices are live from airlines
+            ✨ Live prices from airlines
           </p>
         </div>
       </section>
 
-      {/* Chat Interface */}
+      {/* Progress Bar */}
       <section className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          {/* Messages */}
-          <div className="h-[500px] overflow-y-auto p-4 space-y-4">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-8">
+            {[1, 2, 3, 4].map((step) => (
+              <div key={step} className="flex items-center">
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                    msg.role === "user"
-                      ? "bg-navy text-white rounded-br-sm"
-                      : "bg-gray-100 text-navy rounded-bl-sm"
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                    currentStep >= step
+                      ? "bg-gold text-navy"
+                      : "bg-gray-200 text-gray-500"
                   }`}
                 >
-                  <div className="whitespace-pre-wrap text-sm">
-                    {msg.content.split("**").map((part, j) =>
-                      j % 2 === 1 ? <strong key={j}>{part}</strong> : part
-                    )}
-                  </div>
-                  
-                  {/* Loading indicator for searching */}
-                  {msg.isSearching && (
-                    <div className="flex space-x-1 mt-3">
-                      <div className="w-2 h-2 bg-gold rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                      <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                    </div>
-                  )}
-                  
-                  {/* Flight Results */}
-                  {msg.flightResults && msg.flightResults.length > 0 && (
-                    <div className="mt-4 space-y-3">
-                      {/* Category sections */}
-                      {['cheapest', 'fastest', 'best-value'].map(category => {
-                        const categoryFlights = msg.flightResults?.filter(f => f.category === category) || [];
-                        if (categoryFlights.length === 0) return null;
-                        
-                        const categoryIcon = category === 'cheapest' ? '🏆' : category === 'fastest' ? '✈️' : '💡';
-                        const categoryName = category === 'cheapest' ? 'Cheapest' : category === 'fastest' ? 'Fastest' : 'Best Value';
-                        
-                        return (
-                          <div key={category}>
-                            <h4 className="text-xs font-semibold text-navy mb-2 flex items-center gap-1">
-                              {categoryIcon} {categoryName}
-                            </h4>
-                            {categoryFlights.slice(0, 1).map(flight => (
-                              <FlightCard key={`cat-${flight.id}`} flight={flight} generateBookingUrl={generateBookingUrl} />
-                            ))}
-                          </div>
-                        );
-                      })}
-                      
-                      {/* All other flights */}
-                      {msg.flightResults.filter(f => !f.category).slice(0, 6).map(flight => (
-                        <FlightCard key={flight.id} flight={flight} generateBookingUrl={generateBookingUrl} />
-                      ))}
-                    </div>
-                  )}
+                  {step}
                 </div>
+                {step < 4 && (
+                  <div
+                    className={`h-1 w-16 md:w-24 ml-2 ${
+                      currentStep > step ? "bg-gold" : "bg-gray-200"
+                    }`}
+                  />
+                )}
               </div>
             ))}
-            
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <form onSubmit={handleSubmit} className="border-t border-gray-100 p-4">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  conversationState === 'need_origin' ? "e.g. London" :
-                  conversationState === 'need_destination' ? "e.g. Barbados" :
-                  conversationState === 'need_dates' ? "e.g. March 25th" :
-                  "e.g. London to Barbados on March 25th"
-                }
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                disabled={isSearching}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isSearching}
-                className="bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold px-6 py-3 rounded-lg transition-colors disabled:cursor-not-allowed"
-              >
-                {isSearching ? "..." : "Send"}
-              </button>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-navy">
+              Step {currentStep} of 4
+            </h2>
+            <p className="text-gray-600 text-sm mt-1">
+              {currentStep === 1 && "Where are you flying from?"}
+              {currentStep === 2 && "Where are you flying to?"}
+              {currentStep === 3 && "When do you want to travel?"}
+              {currentStep === 4 && "How many passengers?"}
+            </p>
+          </div>
+
+          {/* Step 1: Origin */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select your departure city
+                </label>
+                <select
+                  value={searchForm.origin}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, origin: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                >
+                  <option value="">Choose departure city</option>
+                  <optgroup label="🌍 International">
+                    {originCities.filter(city => city.country !== "Caribbean").map(city => (
+                      <option key={city.code} value={city.code}>
+                        {city.name} ({city.code}) - {city.country}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🏝️ Caribbean">
+                    {originCities.filter(city => city.country === "Caribbean").map(city => (
+                      <option key={city.code} value={city.code}>
+                        {city.name} ({city.code})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
             </div>
-          </form>
-        </div>
+          )}
 
-        {/* Quick Actions */}
-        <div className="mt-6">
-          <p className="text-sm text-gray-600 mb-3">Quick searches:</p>
-          <div className="flex flex-wrap gap-2">
-            {[
-              "London to Barbados tomorrow",
-              "New York to Jamaica next week",
-              "Miami to Aruba",
-              "Paris to Martinique",
-              "Amsterdam to Curaçao",
-            ].map((q) => (
+          {/* Step 2: Destination */}
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select your destination
+                </label>
+                <select
+                  value={searchForm.destination}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, destination: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                >
+                  <option value="">Choose destination</option>
+                  <optgroup label="🏝️ Caribbean">
+                    {allDestinations.filter(dest => dest.type === "Caribbean").map(dest => (
+                      <option key={dest.code} value={dest.code}>
+                        {dest.flag} {dest.name} ({dest.code})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🌍 International">
+                    {allDestinations.filter(dest => dest.type === "International").map(dest => (
+                      <option key={dest.code} value={dest.code}>
+                        {dest.flag} {dest.name} ({dest.code})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Dates */}
+          {currentStep === 3 && (
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Departure date *
+                  </label>
+                  <input
+                    type="date"
+                    value={searchForm.departure_date}
+                    onChange={(e) => setSearchForm(prev => ({ ...prev, departure_date: e.target.value }))}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Return date (optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={searchForm.return_date}
+                    onChange={(e) => setSearchForm(prev => ({ ...prev, return_date: e.target.value }))}
+                    min={searchForm.departure_date || new Date().toISOString().split('T')[0]}
+                    className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Passengers */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of passengers
+                </label>
+                <select
+                  value={searchForm.passengers}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, passengers: parseInt(e.target.value) }))}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                >
+                  {[1, 2, 3, 4, 5, 6].map(num => (
+                    <option key={num} value={num}>
+                      {num} passenger{num > 1 ? 's' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Summary */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-navy mb-2">Search Summary</h3>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p><strong>From:</strong> {getOriginName(searchForm.origin)} ({searchForm.origin})</p>
+                  <p><strong>To:</strong> {getDestinationName(searchForm.destination)} ({searchForm.destination})</p>
+                  <p><strong>Departure:</strong> {searchForm.departure_date}</p>
+                  {searchForm.return_date && (
+                    <p><strong>Return:</strong> {searchForm.return_date}</p>
+                  )}
+                  <p><strong>Passengers:</strong> {searchForm.passengers}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-8">
+            <button
+              onClick={handleBack}
+              disabled={currentStep === 1}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Back
+            </button>
+            
+            {currentStep < 4 ? (
               <button
-                key={q}
-                onClick={() => setInput(q)}
-                disabled={isSearching}
-                className="text-xs bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-navy px-3 py-2 rounded-lg transition-colors disabled:cursor-not-allowed"
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className="px-6 py-2 bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold rounded-lg transition-colors disabled:cursor-not-allowed"
               >
-                {q}
+                Next
               </button>
-            ))}
+            ) : (
+              <button
+                onClick={handleSearch}
+                disabled={isSearching || !canProceed()}
+                className="px-8 py-2 bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold rounded-lg transition-colors disabled:cursor-not-allowed"
+              >
+                {isSearching ? "Searching..." : "Search Flights"}
+              </button>
+            )}
           </div>
+
+          {/* Search Error */}
+          {searchError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">❌ {searchError}</p>
+            </div>
+          )}
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="mt-8 pt-8 border-t border-gray-100">
+              <h3 className="font-bold text-navy mb-4">
+                ✈️ {getOriginName(searchForm.origin)} → {getDestinationName(searchForm.destination)} 
+                ({searchResults.length} results)
+              </h3>
+              
+              <div className="space-y-3">
+                {['cheapest', 'fastest', 'best-value'].map(category => {
+                  const categoryFlights = searchResults.filter(f => f.category === category);
+                  if (categoryFlights.length === 0) return null;
+                  
+                  const categoryIcon = category === 'cheapest' ? '🏆' : category === 'fastest' ? '✈️' : '💡';
+                  const categoryName = category === 'cheapest' ? 'Cheapest' : category === 'fastest' ? 'Fastest' : 'Best Value';
+                  
+                  return (
+                    <div key={category}>
+                      <h4 className="text-sm font-semibold text-navy mb-2 flex items-center gap-1">
+                        {categoryIcon} {categoryName}
+                      </h4>
+                      {categoryFlights.slice(0, 1).map(flight => (
+                        <FlightCard key={`cat-${flight.id}`} flight={flight} generateBookingUrl={generateBookingUrl} />
+                      ))}
+                    </div>
+                  );
+                })}
+                
+                {searchResults.filter(f => !f.category).slice(0, 6).map(flight => (
+                  <FlightCard key={flight.id} flight={flight} generateBookingUrl={generateBookingUrl} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </>

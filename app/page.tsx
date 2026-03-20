@@ -1,5 +1,6 @@
 import Link from "next/link";
 import RateWidget from "@/components/RateWidget";
+import FlightWidget from "@/components/FlightWidget";
 import EmailSignup from "@/components/EmailSignup";
 import { countryConfig } from "@/lib/providers";
 import { getPopularDestinations } from "@/lib/destinations";
@@ -69,7 +70,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-                The smarter way to manage money —{" "}
+                The smarter way to manage money and find flights —{" "}
                 <span className="text-gold">built for the Caribbean</span>
               </h1>
               <p className="mt-4 text-lg text-gray-300">
@@ -115,8 +116,13 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="flex justify-center">
-              <RateWidget />
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex justify-center">
+                <RateWidget />
+              </div>
+              <div className="flex justify-center">
+                <FlightWidget />
+              </div>
             </div>
           </div>
         </div>

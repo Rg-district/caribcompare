@@ -85,6 +85,7 @@ const caribbeanDestinations = [
   { code: "UVF", name: "St Lucia", flag: "🇱🇨" },
   { code: "GND", name: "Grenada", flag: "🇬🇩" },
   { code: "NAS", name: "Bahamas", flag: "🇧🇸" },
+  { code: "BDA", name: "Bermuda", flag: "🇧🇲" },
   { code: "SXM", name: "Sint Maarten", flag: "🇸🇽" },
   { code: "AUA", name: "Aruba", flag: "🇦🇼" },
   { code: "CUR", name: "Curaçao", flag: "🇨🇼" },
@@ -119,6 +120,7 @@ const searchLinks = {
 export default function FlightsPage() {
   const [selectedOrigin, setSelectedOrigin] = useState<keyof typeof routes>("uk");
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
+  const [flyingFromCaribbean, setFlyingFromCaribbean] = useState(false);
   
   // Search form state
   const [searchForm, setSearchForm] = useState({
@@ -222,7 +224,22 @@ export default function FlightsPage() {
       {/* Flight Search Form */}
       <section className="max-w-6xl mx-auto px-4 -mt-6">
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-          <h2 className="text-lg font-bold text-navy mb-4">🔍 Search Real-Time Flights</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-navy">🔍 Search Real-Time Flights</h2>
+            <button
+              onClick={() => {
+                setFlyingFromCaribbean(!flyingFromCaribbean);
+                setSearchForm(prev => ({ ...prev, origin: "", destination: "" }));
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                flyingFromCaribbean 
+                  ? "bg-gold text-navy" 
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              }`}
+            >
+              {flyingFromCaribbean ? "🏝️ Flying from Caribbean" : "🌍 Flying to Caribbean"}
+            </button>
+          </div>
           
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -235,11 +252,21 @@ export default function FlightsPage() {
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   <option value="">Select origin</option>
-                  {originCities.map(city => (
-                    <option key={city.code} value={city.code}>
-                      {city.name} ({city.code})
-                    </option>
-                  ))}
+                  {flyingFromCaribbean ? (
+                    // Caribbean origins
+                    caribbeanDestinations.map(dest => (
+                      <option key={dest.code} value={dest.code}>
+                        {dest.flag} {dest.name} ({dest.code})
+                      </option>
+                    ))
+                  ) : (
+                    // International origins
+                    originCities.map(city => (
+                      <option key={city.code} value={city.code}>
+                        {city.name} ({city.code})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
@@ -252,11 +279,21 @@ export default function FlightsPage() {
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   <option value="">Select destination</option>
-                  {caribbeanDestinations.map(dest => (
-                    <option key={dest.code} value={dest.code}>
-                      {dest.flag} {dest.name} ({dest.code})
-                    </option>
-                  ))}
+                  {flyingFromCaribbean ? (
+                    // International destinations
+                    originCities.map(city => (
+                      <option key={city.code} value={city.code}>
+                        {city.name} ({city.code})
+                      </option>
+                    ))
+                  ) : (
+                    // Caribbean destinations
+                    caribbeanDestinations.map(dest => (
+                      <option key={dest.code} value={dest.code}>
+                        {dest.flag} {dest.name} ({dest.code})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
