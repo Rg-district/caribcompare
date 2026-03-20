@@ -107,14 +107,14 @@ interface FlightResult {
   stops: number;
 }
 
-// Flight search affiliate links
+// Flight search links (removed Skyscanner, replaced with Google Flights)
 const searchLinks = {
-  skyscanner: (from: string, to: string) => 
-    `https://www.skyscanner.net/transport/flights/${from}/${to}/`,
-  kayak: (from: string, to: string) => 
-    `https://www.kayak.com/flights/${from}-${to}/`,
   google: (from: string, to: string) =>
     `https://www.google.com/travel/flights?q=flights%20from%20${from}%20to%20${to}`,
+  kayak: (from: string, to: string) => 
+    `https://www.kayak.com/flights/${from}-${to}/`,
+  momondo: (from: string, to: string) =>
+    `https://www.momondo.com/flights/${from}-${to}/`,
 };
 
 export default function FlightsPage() {
@@ -224,49 +224,33 @@ export default function FlightsPage() {
       {/* Flight Search Form */}
       <section className="max-w-6xl mx-auto px-4 -mt-6">
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-navy">🔍 Search Real-Time Flights</h2>
-            <button
-              onClick={() => {
-                setFlyingFromCaribbean(!flyingFromCaribbean);
-                setSearchForm(prev => ({ ...prev, origin: "", destination: "" }));
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                flyingFromCaribbean 
-                  ? "bg-gold text-navy" 
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              }`}
-            >
-              {flyingFromCaribbean ? "🏝️ Flying from Caribbean" : "🌍 Flying to Caribbean"}
-            </button>
-          </div>
+          <h2 className="text-lg font-bold text-navy mb-6">🔍 Search Real-Time Flights</h2>
           
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <form onSubmit={handleSearch}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               {/* Origin */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
                 <select
                   value={searchForm.origin}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, origin: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   <option value="">Select origin</option>
-                  {flyingFromCaribbean ? (
-                    // Caribbean origins
-                    caribbeanDestinations.map(dest => (
-                      <option key={dest.code} value={dest.code}>
-                        {dest.flag} {dest.name} ({dest.code})
-                      </option>
-                    ))
-                  ) : (
-                    // International origins
-                    originCities.map(city => (
+                  <optgroup label="🌍 International">
+                    {originCities.map(city => (
                       <option key={city.code} value={city.code}>
                         {city.name} ({city.code})
                       </option>
-                    ))
-                  )}
+                    ))}
+                  </optgroup>
+                  <optgroup label="🏝️ Caribbean">
+                    {caribbeanDestinations.map(dest => (
+                      <option key={dest.code} value={dest.code}>
+                        {dest.flag} {dest.name} ({dest.code})
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </div>
 
@@ -276,24 +260,23 @@ export default function FlightsPage() {
                 <select
                   value={searchForm.destination}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, destination: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   <option value="">Select destination</option>
-                  {flyingFromCaribbean ? (
-                    // International destinations
-                    originCities.map(city => (
-                      <option key={city.code} value={city.code}>
-                        {city.name} ({city.code})
-                      </option>
-                    ))
-                  ) : (
-                    // Caribbean destinations
-                    caribbeanDestinations.map(dest => (
+                  <optgroup label="🏝️ Caribbean">
+                    {caribbeanDestinations.map(dest => (
                       <option key={dest.code} value={dest.code}>
                         {dest.flag} {dest.name} ({dest.code})
                       </option>
-                    ))
-                  )}
+                    ))}
+                  </optgroup>
+                  <optgroup label="🌍 International">
+                    {originCities.map(city => (
+                      <option key={city.code} value={city.code}>
+                        {city.name} ({city.code})
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </div>
 
@@ -305,31 +288,32 @@ export default function FlightsPage() {
                   value={searchForm.departure_date}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, departure_date: e.target.value }))}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 />
               </div>
 
               {/* Return Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Return (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Return</label>
                 <input
                   type="date"
                   value={searchForm.return_date}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, return_date: e.target.value }))}
                   min={searchForm.departure_date || new Date().toISOString().split('T')[0]}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  placeholder="Optional"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-sm text-gray-500">
                 ✨ Powered by real-time airline data
               </p>
               <button
                 type="submit"
-                disabled={isSearching}
-                className="bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold px-8 py-2.5 rounded-lg transition-colors disabled:cursor-not-allowed"
+                disabled={isSearching || !searchForm.origin || !searchForm.destination || !searchForm.departure_date}
+                className="w-full md:w-auto bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-bold px-8 py-3 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 {isSearching ? "Searching..." : "Search Flights"}
               </button>
@@ -503,14 +487,14 @@ export default function FlightsPage() {
             
             <div className="grid md:grid-cols-3 gap-4">
               <a
-                href={searchLinks.skyscanner(currentRoutes.cities[0].split(" ")[0].toLowerCase(), selectedRoute.code.toLowerCase())}
+                href={searchLinks.google(currentRoutes.cities[0].split(" ")[0], selectedRoute.name)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 hover:bg-white/20 rounded-lg p-4 text-center transition-colors"
               >
                 <p className="text-2xl mb-1">🔍</p>
-                <p className="font-semibold">Skyscanner</p>
-                <p className="text-xs text-gray-300">Best for flexible dates</p>
+                <p className="font-semibold">Google Flights</p>
+                <p className="text-xs text-gray-300">Calendar view & best deals</p>
               </a>
               
               <a
@@ -525,14 +509,14 @@ export default function FlightsPage() {
               </a>
               
               <a
-                href={searchLinks.google(currentRoutes.cities[0].split(" ")[0], selectedRoute.name)}
+                href={searchLinks.momondo(currentRoutes.cities[0].split(" ")[0].toLowerCase(), selectedRoute.code.toLowerCase())}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 hover:bg-white/20 rounded-lg p-4 text-center transition-colors"
               >
                 <p className="text-2xl mb-1">✈️</p>
-                <p className="font-semibold">Google Flights</p>
-                <p className="text-xs text-gray-300">Calendar view</p>
+                <p className="font-semibold">Momondo</p>
+                <p className="text-xs text-gray-300">Global price comparison</p>
               </a>
             </div>
 
@@ -542,7 +526,7 @@ export default function FlightsPage() {
                 {selectedOrigin === "uk" ? " in September–November (avoid school holidays)" :
                  selectedOrigin === "france" ? " outside French school holidays (avoid July–August)" :
                  " 6-8 weeks before departure"}. 
-                Set up price alerts on Skyscanner for the best deals.
+                Set up price alerts on Google Flights or Kayak for the best deals.
               </p>
             </div>
           </div>
@@ -571,7 +555,7 @@ export default function FlightsPage() {
             <p className="text-3xl mb-2">🔔</p>
             <h3 className="font-bold text-navy">Set price alerts</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Use Skyscanner or Google Flights to track prices. Jump when they drop.
+              Use Google Flights or Kayak to track prices. Jump when they drop.
             </p>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAirlineBookingUrl } from "@/lib/airline-booking-urls";
 
 // Types for Duffel API
 interface DuffelSlice {
@@ -153,7 +154,7 @@ function calculateDuration(durationStr: string): string {
   return result.trim() || durationStr;
 }
 
-function parseOffer(offer: DuffelOffer): ParsedFlightResult {
+function parseOffer(offer: DuffelOffer, departureDate: string, returnDate?: string): ParsedFlightResult {
   // Determine if this is a return flight (has multiple slices)
   const isReturnFlight = offer.slices.length > 1;
   
@@ -186,6 +187,16 @@ function parseOffer(offer: DuffelOffer): ParsedFlightResult {
     airline: seg.marketing_carrier.name
   }));
 
+  // Generate direct airline booking URL
+  const bookingUrl = getAirlineBookingUrl(
+    airline.iata_code,
+    airline.name,
+    outboundSlice.origin.iata_code,
+    outboundSlice.destination.iata_code,
+    departureDate,
+    returnDate
+  );
+
   return {
     id: offer.id,
     airline: airline.name,
@@ -206,6 +217,7 @@ function parseOffer(offer: DuffelOffer): ParsedFlightResult {
     duration: calculateDuration(outboundSlice.duration),
     stops,
     segments,
+    bookingUrl,
     isReturnFlight
   };
 }
@@ -274,7 +286,7 @@ async function searchFlights(params: FlightSearchRequest): Promise<ParsedFlightR
   
   for (const offer of data.data.offers) {
     try {
-      const parsed = parseOffer(offer);
+      const parsed = parseOffer(offer, params.departure_date, params.return_date);
       parsedOffers.push(parsed);
     } catch (error) {
       console.error('Error parsing offer:', error, 'Offer:', JSON.stringify(offer, null, 2));
@@ -284,8 +296,12 @@ async function searchFlights(params: FlightSearchRequest): Promise<ParsedFlightR
 
   console.log('Successfully parsed offers:', parsedOffers.length);
 
-  // Filter out Duffel Airways test results
-  const filtered = parsedOffers.filter(offer => !offer.airline.toLowerCase().includes('duffel'));
+  // Filter out test data and invalid airlines
+  const filtered = parsedOffers.filter(offer => 
+    !offer.airline.toLowerCase().includes('duffel') &&
+    offer.airlineCode !== 'ZZ' &&
+    offer.airlineCode.length === 2
+  );
   console.log('After filtering Duffel Airways:', filtered.length);
 
   // Sort by price (ascending)

@@ -90,8 +90,6 @@ const allDestinations = [
   { code: "AMS", name: "Amsterdam", flag: "🇳🇱", type: "International" }
 ];
 
-type Step = 1 | 2 | 3 | 4;
-
 interface SearchForm {
   origin: string;
   destination: string;
@@ -99,6 +97,8 @@ interface SearchForm {
   return_date: string;
   passengers: number;
 }
+
+type ResultsTab = 'cheapest' | 'fastest' | 'best-value';
 
 function categorizeFlights(flights: FlightResult[]): FlightResult[] {
   if (flights.length === 0) return flights;
@@ -166,7 +166,6 @@ function formatCurrency(amount: string, currency: string): string {
 }
 
 export default function FlightFinderPage() {
-  const [currentStep, setCurrentStep] = useState<Step>(1);
   const [searchForm, setSearchForm] = useState<SearchForm>({
     origin: "",
     destination: "",
@@ -177,20 +176,11 @@ export default function FlightFinderPage() {
   const [searchResults, setSearchResults] = useState<FlightResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ResultsTab>('cheapest');
 
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep((prev) => (prev + 1) as Step);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep((prev) => (prev - 1) as Step);
-    }
-  };
-
-  const handleSearch = async () => {
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (!searchForm.origin || !searchForm.destination || !searchForm.departure_date) {
       setSearchError("Please complete all required fields");
       return;
@@ -241,24 +231,25 @@ export default function FlightFinderPage() {
     return dest ? dest.name : code;
   };
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return searchForm.origin !== "";
-      case 2:
-        return searchForm.destination !== "";
-      case 3:
-        return searchForm.departure_date !== "";
-      case 4:
-        return true;
+  const getFlightsByTab = (tab: ResultsTab): FlightResult[] => {
+    switch (tab) {
+      case 'cheapest':
+        return [...searchResults].sort((a, b) => parseFloat(a.price.amount) - parseFloat(b.price.amount));
+      case 'fastest':
+        return [...searchResults].sort((a, b) => {
+          if (a.stops !== b.stops) return a.stops - b.stops;
+          return parseDurationToMinutes(a.duration) - parseDurationToMinutes(b.duration);
+        });
+      case 'best-value':
+        return [...searchResults].sort((a, b) => 
+          calculateValueScore(b, searchResults) - calculateValueScore(a, searchResults)
+        );
       default:
-        return false;
+        return searchResults;
     }
   };
 
-  const generateBookingUrl = (flight: FlightResult): string => {
-    return `https://www.skyscanner.net/transport/flights/${flight.departure.airport}/${flight.arrival.airport}/`;
-  };
+  const currentResults = getFlightsByTab(activeTab);
 
   return (
     <>
@@ -268,12 +259,11 @@ export default function FlightFinderPage() {
           <Link href="/flights" className="text-gold hover:text-gold-light text-sm mb-3 inline-block">
             ← Back to Flights
           </Link>
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-            <span className="text-3xl">🤖</span>
-            AI Flight Finder
+          <h1 className="text-2xl md:text-3xl font-bold">
+            ✈️ Flight Search
           </h1>
           <p className="mt-2 text-gray-300">
-            Find flights with our step-by-step guide
+            Find and compare flights with direct airline booking
           </p>
           <p className="text-sm text-gold">
             ✨ Live prices from airlines
@@ -281,61 +271,24 @@ export default function FlightFinderPage() {
         </div>
       </section>
 
-      {/* Progress Bar */}
-      <section className="max-w-4xl mx-auto px-4 py-6">
+      {/* Search Form */}
+      <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-8">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    currentStep >= step
-                      ? "bg-gold text-navy"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
-                >
-                  {step}
-                </div>
-                {step < 4 && (
-                  <div
-                    className={`h-1 w-16 md:w-24 ml-2 ${
-                      currentStep > step ? "bg-gold" : "bg-gray-200"
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-navy">
-              Step {currentStep} of 4
-            </h2>
-            <p className="text-gray-600 text-sm mt-1">
-              {currentStep === 1 && "Where are you flying from?"}
-              {currentStep === 2 && "Where are you flying to?"}
-              {currentStep === 3 && "When do you want to travel?"}
-              {currentStep === 4 && "How many passengers?"}
-            </p>
-          </div>
-
-          {/* Step 1: Origin */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
+          <form onSubmit={handleSearch}>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+              {/* Origin */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select your departure city
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
                 <select
                   value={searchForm.origin}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, origin: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
-                  <option value="">Choose departure city</option>
+                  <option value="">Select origin</option>
                   <optgroup label="🌍 International">
                     {originCities.filter(city => city.country !== "Caribbean").map(city => (
                       <option key={city.code} value={city.code}>
-                        {city.name} ({city.code}) - {city.country}
+                        {city.name} ({city.code})
                       </option>
                     ))}
                   </optgroup>
@@ -348,22 +301,16 @@ export default function FlightFinderPage() {
                   </optgroup>
                 </select>
               </div>
-            </div>
-          )}
 
-          {/* Step 2: Destination */}
-          {currentStep === 2 && (
-            <div className="space-y-4">
+              {/* Destination */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select your destination
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
                 <select
                   value={searchForm.destination}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, destination: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
-                  <option value="">Choose destination</option>
+                  <option value="">Select destination</option>
                   <optgroup label="🏝️ Caribbean">
                     {allDestinations.filter(dest => dest.type === "Caribbean").map(dest => (
                       <option key={dest.code} value={dest.code}>
@@ -380,105 +327,60 @@ export default function FlightFinderPage() {
                   </optgroup>
                 </select>
               </div>
-            </div>
-          )}
 
-          {/* Step 3: Dates */}
-          {currentStep === 3 && (
-            <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Departure date *
-                  </label>
-                  <input
-                    type="date"
-                    value={searchForm.departure_date}
-                    onChange={(e) => setSearchForm(prev => ({ ...prev, departure_date: e.target.value }))}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Return date (optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={searchForm.return_date}
-                    onChange={(e) => setSearchForm(prev => ({ ...prev, return_date: e.target.value }))}
-                    min={searchForm.departure_date || new Date().toISOString().split('T')[0]}
-                    className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Passengers */}
-          {currentStep === 4 && (
-            <div className="space-y-6">
+              {/* Departure Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Number of passengers
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Departure</label>
+                <input
+                  type="date"
+                  value={searchForm.departure_date}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, departure_date: e.target.value }))}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                />
+              </div>
+
+              {/* Return Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Return</label>
+                <input
+                  type="date"
+                  value={searchForm.return_date}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, return_date: e.target.value }))}
+                  min={searchForm.departure_date || new Date().toISOString().split('T')[0]}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  placeholder="Optional"
+                />
+              </div>
+
+              {/* Passengers */}
+              <div className="md:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
                 <select
                   value={searchForm.passengers}
                   onChange={(e) => setSearchForm(prev => ({ ...prev, passengers: parseInt(e.target.value) }))}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   {[1, 2, 3, 4, 5, 6].map(num => (
                     <option key={num} value={num}>
-                      {num} passenger{num > 1 ? 's' : ''}
+                      {num}
                     </option>
                   ))}
                 </select>
               </div>
-
-              {/* Summary */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-navy mb-2">Search Summary</h3>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p><strong>From:</strong> {getOriginName(searchForm.origin)} ({searchForm.origin})</p>
-                  <p><strong>To:</strong> {getDestinationName(searchForm.destination)} ({searchForm.destination})</p>
-                  <p><strong>Departure:</strong> {searchForm.departure_date}</p>
-                  {searchForm.return_date && (
-                    <p><strong>Return:</strong> {searchForm.return_date}</p>
-                  )}
-                  <p><strong>Passengers:</strong> {searchForm.passengers}</p>
-                </div>
-              </div>
             </div>
-          )}
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between mt-8">
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 1}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Back
-            </button>
-            
-            {currentStep < 4 ? (
+            {/* Search Button */}
+            <div className="flex justify-center">
               <button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="px-6 py-2 bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold rounded-lg transition-colors disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                onClick={handleSearch}
-                disabled={isSearching || !canProceed()}
-                className="px-8 py-2 bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold rounded-lg transition-colors disabled:cursor-not-allowed"
+                type="submit"
+                disabled={isSearching || !searchForm.origin || !searchForm.destination || !searchForm.departure_date}
+                className="w-full md:w-auto bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-bold px-12 py-3 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 {isSearching ? "Searching..." : "Search Flights"}
               </button>
-            )}
-          </div>
+            </div>
+          </form>
 
           {/* Search Error */}
           {searchError && (
@@ -486,136 +388,137 @@ export default function FlightFinderPage() {
               <p className="text-red-700 text-sm">❌ {searchError}</p>
             </div>
           )}
-
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="mt-8 pt-8 border-t border-gray-100">
-              <h3 className="font-bold text-navy mb-4">
-                ✈️ {getOriginName(searchForm.origin)} → {getDestinationName(searchForm.destination)} 
-                ({searchResults.length} results)
-              </h3>
-              
-              <div className="space-y-3">
-                {['cheapest', 'fastest', 'best-value'].map(category => {
-                  const categoryFlights = searchResults.filter(f => f.category === category);
-                  if (categoryFlights.length === 0) return null;
-                  
-                  const categoryIcon = category === 'cheapest' ? '🏆' : category === 'fastest' ? '✈️' : '💡';
-                  const categoryName = category === 'cheapest' ? 'Cheapest' : category === 'fastest' ? 'Fastest' : 'Best Value';
-                  
-                  return (
-                    <div key={category}>
-                      <h4 className="text-sm font-semibold text-navy mb-2 flex items-center gap-1">
-                        {categoryIcon} {categoryName}
-                      </h4>
-                      {categoryFlights.slice(0, 1).map(flight => (
-                        <FlightCard key={`cat-${flight.id}`} flight={flight} generateBookingUrl={generateBookingUrl} />
-                      ))}
-                    </div>
-                  );
-                })}
-                
-                {searchResults.filter(f => !f.category).slice(0, 6).map(flight => (
-                  <FlightCard key={flight.id} flight={flight} generateBookingUrl={generateBookingUrl} />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </section>
+
+      {/* Results Section */}
+      {searchResults.length > 0 && (
+        <section className="max-w-4xl mx-auto px-4 pb-8">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            {/* Results Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-navy">
+                ✈️ {getOriginName(searchForm.origin)} → {getDestinationName(searchForm.destination)}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {searchResults.length} flights found
+              </p>
+            </div>
+
+            {/* Results Tabs */}
+            <div className="flex border-b border-gray-200 mb-6">
+              {[
+                { key: 'cheapest', label: '🏆 Cheapest', icon: '🏆' },
+                { key: 'fastest', label: '✈️ Fastest', icon: '✈️' },
+                { key: 'best-value', label: '💡 Best Value', icon: '💡' }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as ResultsTab)}
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.key
+                      ? 'border-gold text-gold'
+                      : 'border-transparent text-gray-500 hover:text-navy'
+                  }`}
+                >
+                  {tab.icon} {tab.label.replace(/^.+ /, '')}
+                </button>
+              ))}
+            </div>
+
+            {/* Flight Cards */}
+            <div className="space-y-4">
+              {currentResults.slice(0, 10).map((flight) => (
+                <FlightCard key={flight.id} flight={flight} />
+              ))}
+            </div>
+
+            {searchResults.length === 0 && !isSearching && (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No flights found for these dates. Try different dates.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </>
   );
 }
 
-function FlightCard({ 
-  flight, 
-  generateBookingUrl 
-}: { 
-  flight: FlightResult; 
-  generateBookingUrl: (flight: FlightResult) => string;
-}) {
+function FlightCard({ flight }: { flight: FlightResult }) {
   return (
-    <div className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
+    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-3">
             {flight.airlineLogo && (
               <img 
                 src={flight.airlineLogo} 
                 alt={flight.airline}
-                className="w-6 h-6 object-contain"
+                className="w-8 h-8 object-contain"
               />
             )}
             <div>
-              <p className="font-semibold text-navy text-sm">{flight.airline}</p>
+              <p className="font-semibold text-navy">{flight.airline}</p>
               <p className="text-xs text-gray-500">{flight.airlineCode}</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-4 text-sm">
-            <div>
-              <p className="font-medium">{flight.departure.airport}</p>
-              <p className="text-xs text-gray-500">{flight.departure.time}</p>
+          <div className="flex items-center gap-6 text-sm">
+            <div className="text-center">
+              <p className="font-bold text-navy text-lg">{flight.departure.airport}</p>
+              <p className="text-gray-600">{flight.departure.time}</p>
             </div>
+            
             <div className="flex-1 text-center">
-              <p className="text-xs text-gray-500">{flight.duration}</p>
-              <div className="flex items-center justify-center gap-1 mt-1">
-                <div className="w-2 h-2 bg-navy rounded-full"></div>
-                {flight.stops > 0 && (
-                  <>
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    {flight.stops > 1 && (
-                      <>
-                        <div className="flex-1 h-px bg-gray-300"></div>
-                        <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                      </>
-                    )}
-                  </>
-                )}
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <div className="w-2 h-2 bg-navy rounded-full"></div>
+              <p className="text-xs text-gray-500 mb-1">{flight.duration}</p>
+              <div className="flex items-center justify-center gap-1">
+                <div className="w-3 h-3 bg-navy rounded-full"></div>
+                <div className="flex-1 h-px bg-gray-300 relative">
+                  {flight.stops > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {Array.from({length: flight.stops}, (_, i) => (
+                        <div key={i} className="w-2 h-2 bg-gray-400 rounded-full mx-1"></div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="w-3 h-3 bg-navy rounded-full"></div>
               </div>
-              {flight.stops > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {flight.stops} stop{flight.stops > 1 ? 's' : ''}
-                </p>
-              )}
+              <div className="mt-1">
+                {flight.stops === 0 ? (
+                  <span className="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                    Direct
+                  </span>
+                ) : (
+                  <span className="text-xs text-gray-500">
+                    {flight.stops} stop{flight.stops > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="font-medium">{flight.arrival.airport}</p>
-              <p className="text-xs text-gray-500">{flight.arrival.time}</p>
+            
+            <div className="text-center">
+              <p className="font-bold text-navy text-lg">{flight.arrival.airport}</p>
+              <p className="text-gray-600">{flight.arrival.time}</p>
             </div>
           </div>
         </div>
         
-        <div className="text-right ml-4">
-          <p className="font-bold text-green-600">
+        <div className="text-right ml-6">
+          <p className="font-bold text-2xl text-navy mb-2">
             {formatCurrency(flight.price.amount, flight.price.currency)}
           </p>
           <a
-            href={generateBookingUrl(flight)}
+            href={flight.bookingUrl || '#'}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block mt-2 bg-gold hover:bg-gold-light text-navy font-medium px-4 py-2 rounded-lg text-sm transition-colors"
+            className="inline-block bg-gold hover:bg-gold-light text-navy font-bold px-6 py-2 rounded-lg transition-colors"
           >
-            Book Direct
+            Book with {flight.airline}
           </a>
         </div>
       </div>
-      
-      {flight.category && (
-        <div className="mt-3 pt-2 border-t border-gray-100">
-          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-            flight.category === 'cheapest' ? 'bg-green-100 text-green-700' :
-            flight.category === 'fastest' ? 'bg-blue-100 text-blue-700' :
-            'bg-purple-100 text-purple-700'
-          }`}>
-            {flight.category === 'cheapest' ? '🏆 Cheapest' :
-             flight.category === 'fastest' ? '✈️ Fastest' : '💡 Best Value'}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
