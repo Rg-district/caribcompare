@@ -7,351 +7,282 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   flightResults?: FlightResult[];
+  isSearching?: boolean;
 };
 
 type FlightResult = {
-  destination: string;
-  flag: string;
-  price: string;
+  id: string;
   airline: string;
-  route: string;
-  searchUrl: string;
-  tip?: string;
+  airlineCode: string;
+  airlineLogo?: string;
+  price: {
+    amount: string;
+    currency: string;
+  };
+  departure: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  duration: string;
+  stops: number;
+  segments: Array<{
+    departure: string;
+    arrival: string;
+    duration: string;
+    airline: string;
+  }>;
+  bookingUrl?: string;
+  isReturnFlight: boolean;
+  category?: 'cheapest' | 'fastest' | 'best-value';
 };
 
-// Flight data for AI recommendations
-const flightData = {
-  uk: {
-    london: {
-      BGI: { low: 450, high: 900, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
-      KIN: { low: 480, high: 950, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
-      POS: { low: 520, high: 1000, airlines: ["British Airways", "Caribbean Airlines"], direct: true, bestMonths: "Sep-Nov" },
-      GEO: { low: 580, high: 1100, airlines: ["British Airways", "Caribbean Airlines"], direct: false, bestMonths: "Sep-Nov" },
-      ANU: { low: 480, high: 900, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
-      UVF: { low: 500, high: 950, airlines: ["British Airways", "Virgin Atlantic", "TUI"], direct: true, bestMonths: "Sep-Nov" },
-      GND: { low: 550, high: 1000, airlines: ["British Airways"], direct: true, bestMonths: "Sep-Nov" },
-      DOM: { low: 580, high: 1050, airlines: ["British Airways"], direct: false, bestMonths: "Sep-Nov" },
-      SVD: { low: 600, high: 1100, airlines: ["British Airways"], direct: false, bestMonths: "Sep-Nov" },
-      SKB: { low: 520, high: 980, airlines: ["British Airways"], direct: true, bestMonths: "Sep-Nov" },
-      NAS: { low: 500, high: 950, airlines: ["British Airways", "Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
-      BDA: { low: 480, high: 900, airlines: ["British Airways"], direct: true, bestMonths: "Sep-Nov" },
-      GCM: { low: 550, high: 1050, airlines: ["British Airways", "Cayman Airways"], direct: true, bestMonths: "Sep-Nov" },
-      PLS: { low: 550, high: 1000, airlines: ["British Airways", "TUI"], direct: true, bestMonths: "Sep-Nov" },
-      HAV: { low: 500, high: 950, airlines: ["Virgin Atlantic"], direct: true, bestMonths: "Sep-Nov" },
-    },
-  },
-  us: {
-    miami: {
-      BGI: { low: 280, high: 550, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      KIN: { low: 180, high: 400, airlines: ["JetBlue", "American", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
-      POS: { low: 320, high: 600, airlines: ["Caribbean Airlines", "American"], direct: true, bestMonths: "Apr-Jun" },
-      NAS: { low: 120, high: 300, airlines: ["American", "Bahamasair", "Silver"], direct: true, bestMonths: "Apr-Jun" },
-      AUA: { low: 200, high: 450, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      CUR: { low: 250, high: 500, airlines: ["American", "JetBlue"], direct: true, bestMonths: "Apr-Jun" },
-      SXM: { low: 220, high: 480, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      SDQ: { low: 180, high: 400, airlines: ["JetBlue", "American", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
-      PUJ: { low: 200, high: 450, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      SJU: { low: 150, high: 350, airlines: ["JetBlue", "American", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
-      STT: { low: 200, high: 450, airlines: ["American", "JetBlue", "Spirit"], direct: true, bestMonths: "Apr-Jun" },
-      GCM: { low: 180, high: 400, airlines: ["Cayman Airways", "American"], direct: true, bestMonths: "Apr-Jun" },
-      PAP: { low: 280, high: 550, airlines: ["American", "JetBlue"], direct: true, bestMonths: "Apr-Jun" },
-    },
-    newyork: {
-      BGI: { low: 350, high: 700, airlines: ["JetBlue", "Caribbean Airlines"], direct: true, bestMonths: "Apr-Jun" },
-      KIN: { low: 280, high: 550, airlines: ["JetBlue", "Delta"], direct: true, bestMonths: "Apr-Jun" },
-      POS: { low: 380, high: 750, airlines: ["Caribbean Airlines", "JetBlue"], direct: true, bestMonths: "Apr-Jun" },
-      ANU: { low: 350, high: 700, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      UVF: { low: 380, high: 750, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      AUA: { low: 320, high: 650, airlines: ["JetBlue", "United"], direct: true, bestMonths: "Apr-Jun" },
-      SXM: { low: 300, high: 600, airlines: ["JetBlue", "American"], direct: true, bestMonths: "Apr-Jun" },
-      SDQ: { low: 280, high: 550, airlines: ["JetBlue", "Delta"], direct: true, bestMonths: "Apr-Jun" },
-      SJU: { low: 200, high: 450, airlines: ["JetBlue", "Delta", "United"], direct: true, bestMonths: "Apr-Jun" },
-    },
-  },
-  france: {
-    paris: {
-      FDF: { low: 350, high: 700, airlines: ["Air France", "Corsair", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
-      PTP: { low: 350, high: 700, airlines: ["Air France", "Corsair", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
-      SFG: { low: 400, high: 800, airlines: ["Air France", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
-      SBH: { low: 550, high: 1000, airlines: ["Air France", "Air Caraïbes"], direct: false, bestMonths: "May, Sep-Oct" },
-      CAY: { low: 500, high: 950, airlines: ["Air France", "Air Caraïbes"], direct: true, bestMonths: "May, Sep-Oct" },
-      PAP: { low: 550, high: 1000, airlines: ["Air France"], direct: false, bestMonths: "May, Sep-Oct" },
-    },
-  },
-  netherlands: {
-    amsterdam: {
-      AUA: { low: 500, high: 950, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
-      CUR: { low: 500, high: 950, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
-      SXM: { low: 520, high: 980, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
-      BON: { low: 550, high: 1000, airlines: ["KLM", "TUI"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
-      PBM: { low: 600, high: 1100, airlines: ["KLM", "Surinam Airways"], direct: true, bestMonths: "Apr-Jun, Sep-Nov" },
-    },
-  },
-  canada: {
-    toronto: {
-      BGI: { low: 550, high: 1100, airlines: ["WestJet", "Air Canada", "Sunwing"], direct: true, bestMonths: "Jan-Mar" },
-      KIN: { low: 400, high: 850, airlines: ["WestJet", "Air Canada", "Sunwing"], direct: true, bestMonths: "Jan-Mar" },
-      POS: { low: 600, high: 1200, airlines: ["Caribbean Airlines", "Air Canada"], direct: true, bestMonths: "Jan-Mar" },
-      ANU: { low: 580, high: 1150, airlines: ["Air Canada", "WestJet"], direct: true, bestMonths: "Jan-Mar" },
-      CUR: { low: 650, high: 1300, airlines: ["WestJet", "Air Canada"], direct: false, bestMonths: "Jan-Mar" },
-      AUA: { low: 600, high: 1200, airlines: ["WestJet", "Air Canada"], direct: true, bestMonths: "Jan-Mar" },
-      SDQ: { low: 450, high: 900, airlines: ["WestJet", "Air Canada", "Sunwing"], direct: true, bestMonths: "Jan-Mar" },
-      PUJ: { low: 480, high: 950, airlines: ["WestJet", "Sunwing", "Air Transat"], direct: true, bestMonths: "Jan-Mar" },
-      HAV: { low: 400, high: 850, airlines: ["Air Canada", "Sunwing", "Air Transat"], direct: true, bestMonths: "Jan-Mar" },
-    },
-  },
-};
-
-const destinationNames: Record<string, { name: string; flag: string }> = {
-  // Anglophone
-  BGI: { name: "Barbados", flag: "🇧🇧" },
-  KIN: { name: "Jamaica", flag: "🇯🇲" },
-  POS: { name: "Trinidad", flag: "🇹🇹" },
-  TAB: { name: "Tobago", flag: "🇹🇹" },
-  GEO: { name: "Guyana", flag: "🇬🇾" },
-  ANU: { name: "Antigua", flag: "🇦🇬" },
-  BBQ: { name: "Barbuda", flag: "🇦🇬" },
-  UVF: { name: "St Lucia", flag: "🇱🇨" },
-  GND: { name: "Grenada", flag: "🇬🇩" },
-  CRU: { name: "Carriacou", flag: "🇬🇩" },
-  DOM: { name: "Dominica", flag: "🇩🇲" },
-  SVD: { name: "St Vincent", flag: "🇻🇨" },
-  BQU: { name: "Bequia", flag: "🇻🇨" },
-  MUB: { name: "Mustique", flag: "🇻🇨" },
-  SKB: { name: "St Kitts", flag: "🇰🇳" },
-  NEV: { name: "Nevis", flag: "🇰🇳" },
-  NAS: { name: "Bahamas", flag: "🇧🇸" },
-  BZE: { name: "Belize", flag: "🇧🇿" },
-  BDA: { name: "Bermuda", flag: "🇧🇲" },
-  EIS: { name: "British Virgin Islands", flag: "🇻🇬" },
-  GCM: { name: "Cayman Islands", flag: "🇰🇾" },
-  PLS: { name: "Turks & Caicos", flag: "🇹🇨" },
-  AXA: { name: "Anguilla", flag: "🇦🇮" },
-  MNI: { name: "Montserrat", flag: "🇲🇸" },
-  
-  // French
-  FDF: { name: "Martinique", flag: "🇲🇶" },
-  PTP: { name: "Guadeloupe", flag: "🇬🇵" },
-  SFG: { name: "Saint Martin", flag: "🇲🇫" },
-  SBH: { name: "St Barthélemy", flag: "🇧🇱" },
-  CAY: { name: "French Guiana", flag: "🇬🇫" },
-  
-  // Dutch
-  AUA: { name: "Aruba", flag: "🇦🇼" },
-  CUR: { name: "Curaçao", flag: "🇨🇼" },
-  SXM: { name: "Sint Maarten", flag: "🇸🇽" },
-  BON: { name: "Bonaire", flag: "🇧🇶" },
-  SAB: { name: "Saba", flag: "🇧🇶" },
-  EUX: { name: "Sint Eustatius", flag: "🇧🇶" },
-  PBM: { name: "Suriname", flag: "🇸🇷" },
-  
-  // Spanish
-  SDQ: { name: "Dominican Republic", flag: "🇩🇴" },
-  PUJ: { name: "Punta Cana", flag: "🇩🇴" },
-  SJU: { name: "Puerto Rico", flag: "🇵🇷" },
-  HAV: { name: "Cuba", flag: "🇨🇺" },
-  
-  // Other
-  PAP: { name: "Haiti", flag: "🇭🇹" },
-  STT: { name: "US Virgin Islands", flag: "🇻🇮" },
-};
-
-// Map city names to Skyscanner IATA codes
+// IATA code mappings
 const cityToIata: Record<string, string> = {
-  london: "lhr",      // London Heathrow
-  miami: "mia",       // Miami International
-  newyork: "jfk",     // JFK
-  paris: "cdg",       // Charles de Gaulle
-  amsterdam: "ams",   // Amsterdam Schiphol
-  toronto: "yyz",     // Toronto Pearson
+  london: "LHR",
+  manchester: "MAN", 
+  newyork: "JFK",
+  "new york": "JFK",
+  nyc: "JFK",
+  miami: "MIA",
+  toronto: "YYZ",
+  paris: "CDG",
+  amsterdam: "AMS"
 };
 
-function generateSearchUrl(origin: string, dest: string): string {
-  const originCode = cityToIata[origin.toLowerCase()] || origin.toLowerCase();
-  return `https://www.skyscanner.net/transport/flights/${originCode}/${dest.toLowerCase()}/`;
+const caribbeanDestinations: Record<string, string> = {
+  barbados: "BGI",
+  jamaica: "KIN",
+  "trinidad": "POS",
+  "tobago": "POS", 
+  antigua: "ANU",
+  "st lucia": "UVF",
+  "saint lucia": "UVF",
+  grenada: "GND", 
+  "st vincent": "SVD",
+  "saint vincent": "SVD",
+  dominica: "DOM",
+  "st kitts": "SKB",
+  "saint kitts": "SKB",
+  "nevis": "SKB",
+  bahamas: "NAS",
+  nassau: "NAS",
+  bermuda: "BDA",
+  "cayman": "GCM",
+  "cayman islands": "GCM",
+  "turks and caicos": "PLS",
+  "turks caicos": "PLS",
+  aruba: "AUA",
+  "curacao": "CUR",
+  "curaçao": "CUR",
+  "sint maarten": "SXM",
+  "st maarten": "SXM",
+  "saint martin": "SXM",
+  martinique: "FDF",
+  guadeloupe: "PTP",
+  "dominican republic": "SDQ",
+  "santo domingo": "SDQ",
+  "punta cana": "PUJ",
+  "puerto rico": "SJU",
+  "san juan": "SJU"
+};
+
+// Flight search conversation states
+type ConversationState = 'initial' | 'need_origin' | 'need_destination' | 'need_dates' | 'searching' | 'results';
+
+interface SearchParams {
+  origin?: string;
+  destination?: string;
+  departure_date?: string;
+  return_date?: string;
+  passengers?: number;
 }
 
-function parseUserQuery(query: string): { origin?: string; city?: string; destination?: string; budget?: number } {
-  const q = query.toLowerCase();
+function parseUserInput(input: string): {
+  origin?: string;
+  destination?: string;
+  departure_date?: string;
+  return_date?: string;
+  passengers?: number;
+  intent?: string;
+} {
+  const text = input.toLowerCase().trim();
   
+  // Look for origin cities
   let origin: string | undefined;
-  let city: string | undefined;
-  
-  if (q.includes("london") || q.includes("uk") || q.includes("england") || q.includes("britain")) {
-    origin = "uk";
-    city = "london";
-  } else if (q.includes("miami")) {
-    origin = "us";
-    city = "miami";
-  } else if (q.includes("new york") || q.includes("nyc") || q.includes("jfk")) {
-    origin = "us";
-    city = "newyork";
-  } else if (q.includes("paris") || q.includes("france") || q.includes("french")) {
-    origin = "france";
-    city = "paris";
-  } else if (q.includes("amsterdam") || q.includes("netherlands") || q.includes("dutch") || q.includes("holland")) {
-    origin = "netherlands";
-    city = "amsterdam";
-  } else if (q.includes("toronto") || q.includes("canada") || q.includes("canadian")) {
-    origin = "canada";
-    city = "toronto";
+  for (const [city, code] of Object.entries(cityToIata)) {
+    if (text.includes(city)) {
+      origin = code;
+      break;
+    }
   }
   
+  // Look for Caribbean destinations
   let destination: string | undefined;
-  // Anglophone
-  if (q.includes("barbados")) destination = "BGI";
-  else if (q.includes("jamaica")) destination = "KIN";
-  else if (q.includes("trinidad")) destination = "POS";
-  else if (q.includes("tobago")) destination = "TAB";
-  else if (q.includes("guyana")) destination = "GEO";
-  else if (q.includes("antigua")) destination = "ANU";
-  else if (q.includes("barbuda")) destination = "BBQ";
-  else if (q.includes("st lucia") || q.includes("saint lucia")) destination = "UVF";
-  else if (q.includes("grenada")) destination = "GND";
-  else if (q.includes("carriacou")) destination = "CRU";
-  else if (q.includes("dominica") && !q.includes("dominican")) destination = "DOM";
-  else if (q.includes("st vincent") || q.includes("saint vincent")) destination = "SVD";
-  else if (q.includes("bequia")) destination = "BQU";
-  else if (q.includes("mustique")) destination = "MUB";
-  else if (q.includes("st kitts") || q.includes("saint kitts")) destination = "SKB";
-  else if (q.includes("nevis")) destination = "NEV";
-  else if (q.includes("bahamas") || q.includes("nassau")) destination = "NAS";
-  else if (q.includes("belize")) destination = "BZE";
-  else if (q.includes("bermuda")) destination = "BDA";
-  else if (q.includes("british virgin") || q.includes("bvi") || q.includes("tortola")) destination = "EIS";
-  else if (q.includes("cayman")) destination = "GCM";
-  else if (q.includes("turks") || q.includes("caicos")) destination = "PLS";
-  else if (q.includes("anguilla")) destination = "AXA";
-  else if (q.includes("montserrat")) destination = "MNI";
-  // French
-  else if (q.includes("martinique")) destination = "FDF";
-  else if (q.includes("guadeloupe")) destination = "PTP";
-  else if (q.includes("saint martin") || q.includes("st martin")) destination = "SFG";
-  else if (q.includes("st barth") || q.includes("saint barth") || q.includes("st barts")) destination = "SBH";
-  else if (q.includes("french guiana") || q.includes("guyane")) destination = "CAY";
-  // Dutch
-  else if (q.includes("aruba")) destination = "AUA";
-  else if (q.includes("curacao") || q.includes("curaçao")) destination = "CUR";
-  else if (q.includes("sint maarten") || q.includes("st maarten")) destination = "SXM";
-  else if (q.includes("bonaire")) destination = "BON";
-  else if (q.includes("saba")) destination = "SAB";
-  else if (q.includes("statia") || q.includes("sint eustatius") || q.includes("st eustatius")) destination = "EUX";
-  else if (q.includes("suriname") || q.includes("paramaribo")) destination = "PBM";
-  // Spanish
-  else if (q.includes("dominican") || q.includes("santo domingo")) destination = "SDQ";
-  else if (q.includes("punta cana")) destination = "PUJ";
-  else if (q.includes("puerto rico") || q.includes("san juan")) destination = "SJU";
-  else if (q.includes("cuba") || q.includes("havana")) destination = "HAV";
-  // Other
-  else if (q.includes("haiti") || q.includes("port-au-prince")) destination = "PAP";
-  else if (q.includes("us virgin") || q.includes("usvi") || q.includes("st thomas") || q.includes("st croix")) destination = "STT";
-  
-  let budget: number | undefined;
-  const budgetMatch = q.match(/(\d+)/);
-  if (budgetMatch && (q.includes("budget") || q.includes("under") || q.includes("less than") || q.includes("£") || q.includes("$") || q.includes("€"))) {
-    budget = parseInt(budgetMatch[1]);
+  for (const [place, code] of Object.entries(caribbeanDestinations)) {
+    if (text.includes(place)) {
+      destination = code;
+      break;
+    }
   }
   
-  return { origin, city, destination, budget };
+  // Look for dates (very basic parsing)
+  let departure_date: string | undefined;
+  let return_date: string | undefined;
+  
+  // Look for specific date formats
+  const dateMatches = text.match(/(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\s+(january|february|march|april|may|june|july|august|september|october|november|december|\w{3})\s+\d{4})/gi);
+  if (dateMatches) {
+    departure_date = dateMatches[0];
+    if (dateMatches.length > 1) {
+      return_date = dateMatches[1];
+    }
+  }
+  
+  // Look for relative dates
+  if (text.includes('tomorrow')) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    departure_date = tomorrow.toISOString().split('T')[0];
+  } else if (text.includes('next week')) {
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    departure_date = nextWeek.toISOString().split('T')[0];
+  }
+  
+  // Look for passengers
+  let passengers: number | undefined;
+  const passengerMatch = text.match(/(\d+)\s*(passenger|person|people|adult)/);
+  if (passengerMatch) {
+    passengers = parseInt(passengerMatch[1]);
+  }
+  
+  // Determine intent
+  let intent: string | undefined;
+  if (text.includes('search') || text.includes('find') || text.includes('look')) {
+    intent = 'search';
+  } else if (text.includes('flexible') || text.includes('any date')) {
+    intent = 'flexible';
+  } else if (text.includes('return') || text.includes('round trip')) {
+    intent = 'return';
+  } else if (text.includes('one way') || text.includes('single')) {
+    intent = 'oneway';
+  }
+  
+  return { origin, destination, departure_date, return_date, passengers, intent };
 }
 
-function generateAIResponse(query: string): { response: string; results: FlightResult[] } {
-  const parsed = parseUserQuery(query);
-  const results: FlightResult[] = [];
-  
-  if (!parsed.origin || !parsed.city) {
-    return {
-      response: "I'd love to help you find cheap flights! 🛫\n\nCould you tell me where you're flying from? I can search flights from:\n\n• 🇬🇧 London (UK)\n• 🇺🇸 Miami or New York (USA)\n• 🇨🇦 Toronto (Canada)\n• 🇫🇷 Paris (France)\n• 🇳🇱 Amsterdam (Netherlands)\n\nJust say something like \"flights from London to Barbados\" or \"cheapest flights from Amsterdam\"",
-      results: [],
-    };
+async function searchFlights(params: SearchParams): Promise<FlightResult[]> {
+  const response = await fetch('/api/flights/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      origin: params.origin,
+      destination: params.destination,
+      departure_date: params.departure_date,
+      return_date: params.return_date,
+      passengers: params.passengers || 1,
+      cabin_class: 'economy'
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.details || 'Failed to search flights');
   }
+
+  const data = await response.json();
+  return data.data || [];
+}
+
+function categorizeFlights(flights: FlightResult[]): FlightResult[] {
+  if (flights.length === 0) return flights;
   
-  const cityData = (flightData as any)[parsed.origin]?.[parsed.city];
-  if (!cityData) {
-    return {
-      response: "I don't have flight data for that route yet. Try asking about flights from London, Miami, New York, Paris, Amsterdam, or Toronto!",
-      results: [],
-    };
-  }
+  // Sort by price for cheapest
+  const sortedByPrice = [...flights].sort((a, b) => 
+    parseFloat(a.price.amount) - parseFloat(b.price.amount)
+  );
   
-  const currency = parsed.origin === "uk" ? "£" : parsed.origin === "france" || parsed.origin === "netherlands" ? "€" : parsed.origin === "canada" ? "CA$" : "$";
-  const cityName = parsed.city.charAt(0).toUpperCase() + parsed.city.slice(1);
-  
-  // If specific destination requested
-  if (parsed.destination && cityData[parsed.destination]) {
-    const flight = cityData[parsed.destination];
-    const dest = destinationNames[parsed.destination];
-    
-    results.push({
-      destination: dest.name,
-      flag: dest.flag,
-      price: `${currency}${flight.low} - ${currency}${flight.high}`,
-      airline: flight.airlines[0],
-      route: `${cityName} → ${dest.name}`,
-      searchUrl: generateSearchUrl(parsed.city, parsed.destination),
-      tip: `Best time to book: ${flight.bestMonths}. ${flight.direct ? "Direct flights available!" : "Usually requires a connection."}`,
-    });
-    
-    return {
-      response: `Here's what I found for ${cityName} to ${dest.name} ${dest.flag}:\n\nTypical prices: **${currency}${flight.low} - ${currency}${flight.high}** return\n\n✈️ Airlines: ${flight.airlines.join(", ")}\n📅 Best time to book: ${flight.bestMonths}\n${flight.direct ? "✅ Direct flights available" : "🔄 Usually requires a connection"}\n\n💡 **Pro tip:** Set up price alerts on Skyscanner. Prices can drop ${currency}100+ during sales!`,
-      results,
-    };
-  }
-  
-  // Show cheapest options from origin
-  let response = `Here are the cheapest Caribbean flights from ${cityName}:\n\n`;
-  
-  const sortedDests = Object.entries(cityData)
-    .map(([code, data]: [string, any]) => ({
-      code,
-      ...data,
-      ...destinationNames[code],
-    }))
-    .sort((a, b) => a.low - b.low);
-  
-  // Filter by budget if specified
-  const filteredDests = parsed.budget 
-    ? sortedDests.filter(d => d.low <= parsed.budget!)
-    : sortedDests;
-  
-  if (filteredDests.length === 0) {
-    return {
-      response: `No flights found under ${currency}${parsed.budget}. The cheapest option from ${cityName} starts at ${currency}${sortedDests[0].low} to ${sortedDests[0].name}. Would you like to see all options?`,
-      results: [],
-    };
-  }
-  
-  filteredDests.slice(0, 5).forEach((dest, i) => {
-    results.push({
-      destination: dest.name,
-      flag: dest.flag,
-      price: `from ${currency}${dest.low}`,
-      airline: dest.airlines[0],
-      route: `${cityName} → ${dest.name}`,
-      searchUrl: generateSearchUrl(parsed.city!, dest.code),
-    });
-    
-    response += `${i + 1}. ${dest.flag} **${dest.name}** — from ${currency}${dest.low}\n`;
+  // Sort by stops then duration for fastest
+  const sortedBySpeed = [...flights].sort((a, b) => {
+    if (a.stops !== b.stops) return a.stops - b.stops;
+    // Parse duration for comparison
+    const aDuration = parseDurationToMinutes(a.duration);
+    const bDuration = parseDurationToMinutes(b.duration);
+    return aDuration - bDuration;
   });
   
-  response += `\n💡 **Tip:** September to November usually has the best prices. Avoid school holidays!`;
+  // Calculate best value (price vs convenience score)
+  const withValueScore = flights.map(flight => ({
+    ...flight,
+    valueScore: calculateValueScore(flight, flights)
+  }));
+  const sortedByValue = [...withValueScore].sort((a, b) => b.valueScore - a.valueScore);
   
-  if (parsed.budget) {
-    response = `Flights under ${currency}${parsed.budget} from ${cityName}:\n\n` + response.split("\n\n").slice(1).join("\n\n");
+  // Assign categories to top flights in each category
+  if (sortedByPrice[0]) sortedByPrice[0].category = 'cheapest';
+  if (sortedBySpeed[0] && sortedBySpeed[0].id !== sortedByPrice[0]?.id) {
+    sortedBySpeed[0].category = 'fastest';
+  }
+  if (sortedByValue[0] && sortedByValue[0].id !== sortedByPrice[0]?.id && sortedByValue[0].id !== sortedBySpeed[0]?.id) {
+    sortedByValue[0].category = 'best-value';
   }
   
-  return { response, results };
+  return flights;
+}
+
+function parseDurationToMinutes(duration: string): number {
+  const hourMatch = duration.match(/(\d+)h/);
+  const minuteMatch = duration.match(/(\d+)m/);
+  
+  const hours = hourMatch ? parseInt(hourMatch[1]) : 0;
+  const minutes = minuteMatch ? parseInt(minuteMatch[1]) : 0;
+  
+  return hours * 60 + minutes;
+}
+
+function calculateValueScore(flight: FlightResult, allFlights: FlightResult[]): number {
+  const prices = allFlights.map(f => parseFloat(f.price.amount));
+  const maxPrice = Math.max(...prices);
+  const minPrice = Math.min(...prices);
+  const priceRange = maxPrice - minPrice;
+  
+  // Normalize price (lower is better)
+  const priceScore = priceRange > 0 ? 1 - ((parseFloat(flight.price.amount) - minPrice) / priceRange) : 1;
+  
+  // Convenience score (fewer stops is better, shorter duration is better)
+  const stopsScore = flight.stops === 0 ? 1 : flight.stops === 1 ? 0.7 : 0.3;
+  const durationMinutes = parseDurationToMinutes(flight.duration);
+  const durationScore = Math.max(0, 1 - (durationMinutes - 300) / 600); // 5-15 hour scale
+  
+  // Weighted combination
+  return priceScore * 0.6 + stopsScore * 0.25 + durationScore * 0.15;
+}
+
+function formatCurrency(amount: string, currency: string): string {
+  const num = parseFloat(amount);
+  const symbol = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
+  return `${symbol}${num.toLocaleString()}`;
 }
 
 export default function FlightFinderPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "👋 Hi! I'm your Caribbean flight finder.\n\nTell me where you're flying from and where you want to go, and I'll find you the best deals!\n\nFor example:\n• \"Flights from London to Barbados\"\n• \"Cheapest flights from Miami\"\n• \"Flights under £500 from UK\"\n• \"Amsterdam to Curaçao\"",
+      content: "🛫 Hi! I'm your Caribbean flight finder.\n\nI'll help you find real-time flights to the Caribbean. Just tell me:\n\n• Where you're flying from (London, Manchester, New York, Miami, Toronto, Paris, Amsterdam)\n• Where you want to go in the Caribbean\n• Your travel dates\n\nTry: \"Flights from London to Barbados on March 25th\""
     },
   ]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [conversationState, setConversationState] = useState<ConversationState>('initial');
+  const [searchParams, setSearchParams] = useState<SearchParams>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -364,24 +295,99 @@ export default function FlightFinderPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isSearching) return;
 
     const userMessage = input.trim();
     setInput("");
     
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setIsTyping(true);
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
 
-    // Simulate AI thinking
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Parse user input
+    const parsed = parseUserInput(userMessage);
+    const updatedParams = { ...searchParams, ...parsed };
+    setSearchParams(updatedParams);
 
-    const { response, results } = generateAIResponse(userMessage);
+    // Determine next step in conversation
+    await handleConversationFlow(userMessage, updatedParams, parsed);
+  };
+
+  const handleConversationFlow = async (userMessage: string, params: SearchParams, parsed: any) => {
+    setIsSearching(true);
+
+    try {
+      // Check if we have everything needed to search
+      if (params.origin && params.destination && params.departure_date) {
+        // We have enough to search!
+        setConversationState('searching');
+        
+        const searchingMessage: Message = {
+          role: "assistant",
+          content: "🔍 Searching for real-time flights...\n\nI'm checking with airlines for the best prices. This may take a moment.",
+          isSearching: true
+        };
+        
+        setMessages(prev => [...prev, searchingMessage]);
+
+        try {
+          const flights = await searchFlights(params);
+          const categorizedFlights = categorizeFlights(flights);
+          
+          setConversationState('results');
+          
+          let resultMessage = "";
+          if (flights.length > 0) {
+            const returnText = params.return_date ? "return" : "one-way";
+            resultMessage = `✈️ Found ${flights.length} ${returnText} flights from ${params.origin} to ${params.destination}!\n\n**Prices are live from airlines** 🔥`;
+          } else {
+            resultMessage = "😔 No flights found for those dates. Try different dates or check if there are alternative nearby airports.";
+          }
+          
+          // Remove the searching message and add results
+          setMessages(prev => prev.slice(0, -1).concat([{
+            role: "assistant",
+            content: resultMessage,
+            flightResults: categorizedFlights
+          }]));
+          
+        } catch (error) {
+          setMessages(prev => prev.slice(0, -1).concat([{
+            role: "assistant",
+            content: `❌ Sorry, I encountered an error searching for flights: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease try again or check your search parameters.`
+          }]));
+        }
+        
+      } else {
+        // Guide user through missing information
+        await provideMissingInfoGuidance(params, parsed);
+      }
+      
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const provideMissingInfoGuidance = async (params: SearchParams, parsed: any) => {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay
+
+    let response = "";
     
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: response, flightResults: results },
-    ]);
-    setIsTyping(false);
+    if (!params.origin) {
+      setConversationState('need_origin');
+      response = "👋 I need to know where you're flying from!\n\n**Choose your departure city:**\n• 🇬🇧 London (LHR)\n• 🇬🇧 Manchester (MAN)\n• 🇺🇸 New York (JFK)\n• 🇺🇸 Miami (MIA)\n• 🇨🇦 Toronto (YYZ)\n• 🇫🇷 Paris (CDG)\n• 🇳🇱 Amsterdam (AMS)\n\nJust say the city name!";
+    } else if (!params.destination) {
+      setConversationState('need_destination');
+      response = `Great! Flying from ${params.origin} ✈️\n\n**Where in the Caribbean would you like to go?**\n\n🏝️ **Popular destinations:**\n• Barbados\n• Jamaica\n• Trinidad\n• Aruba\n• Curaçao\n• St Lucia\n• Antigua\n• Bahamas\n\nJust tell me the island or country!`;
+    } else if (!params.departure_date) {
+      setConversationState('need_dates');
+      response = `Perfect! ${params.origin} to ${params.destination} 🌴\n\n**When would you like to travel?**\n\nYou can say:\n• \"March 25th\"\n• \"2024-03-25\" \n• \"Tomorrow\"\n• \"Next week\"\n• \"I'm flexible with dates\"\n\nWould you like a return flight too?`;
+    }
+    
+    setMessages(prev => [...prev, { role: "assistant", content: response }]);
+  };
+
+  const generateBookingUrl = (flight: FlightResult): string => {
+    // For demo purposes, create a search URL since we don't have Duffel booking links yet
+    return `https://www.skyscanner.net/transport/flights/${flight.departure.airport}/${flight.arrival.airport}/`;
   };
 
   return (
@@ -397,7 +403,10 @@ export default function FlightFinderPage() {
             AI Flight Finder
           </h1>
           <p className="mt-2 text-gray-300">
-            Chat with our AI to find the cheapest flights to the Caribbean
+            Chat with our AI to find real-time flights to the Caribbean
+          </p>
+          <p className="text-sm text-gold">
+            ✨ Prices are live from airlines
           </p>
         </div>
       </section>
@@ -413,7 +422,7 @@ export default function FlightFinderPage() {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                     msg.role === "user"
                       ? "bg-navy text-white rounded-br-sm"
                       : "bg-gray-100 text-navy rounded-bl-sm"
@@ -425,54 +434,47 @@ export default function FlightFinderPage() {
                     )}
                   </div>
                   
+                  {/* Loading indicator for searching */}
+                  {msg.isSearching && (
+                    <div className="flex space-x-1 mt-3">
+                      <div className="w-2 h-2 bg-gold rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
+                      <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                    </div>
+                  )}
+                  
                   {/* Flight Results */}
                   {msg.flightResults && msg.flightResults.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {msg.flightResults.map((flight, j) => (
-                        <a
-                          key={j}
-                          href={flight.searchUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block bg-white rounded-lg p-3 hover:shadow-md transition-shadow border border-gray-200"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl">{flight.flag}</span>
-                              <div>
-                                <p className="font-semibold text-navy text-sm">{flight.destination}</p>
-                                <p className="text-xs text-gray-500">{flight.airline}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-green-600 text-sm">{flight.price}</p>
-                              <p className="text-xs text-gold">Search →</p>
-                            </div>
+                    <div className="mt-4 space-y-3">
+                      {/* Category sections */}
+                      {['cheapest', 'fastest', 'best-value'].map(category => {
+                        const categoryFlights = msg.flightResults?.filter(f => f.category === category) || [];
+                        if (categoryFlights.length === 0) return null;
+                        
+                        const categoryIcon = category === 'cheapest' ? '🏆' : category === 'fastest' ? '✈️' : '💡';
+                        const categoryName = category === 'cheapest' ? 'Cheapest' : category === 'fastest' ? 'Fastest' : 'Best Value';
+                        
+                        return (
+                          <div key={category}>
+                            <h4 className="text-xs font-semibold text-navy mb-2 flex items-center gap-1">
+                              {categoryIcon} {categoryName}
+                            </h4>
+                            {categoryFlights.slice(0, 1).map(flight => (
+                              <FlightCard key={`cat-${flight.id}`} flight={flight} generateBookingUrl={generateBookingUrl} />
+                            ))}
                           </div>
-                          {flight.tip && (
-                            <p className="text-xs text-gray-500 mt-2 border-t border-gray-100 pt-2">
-                              💡 {flight.tip}
-                            </p>
-                          )}
-                        </a>
+                        );
+                      })}
+                      
+                      {/* All other flights */}
+                      {msg.flightResults.filter(f => !f.category).slice(0, 6).map(flight => (
+                        <FlightCard key={flight.id} flight={flight} generateBookingUrl={generateBookingUrl} />
                       ))}
                     </div>
                   )}
                 </div>
               </div>
             ))}
-            
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                  </div>
-                </div>
-              </div>
-            )}
             
             <div ref={messagesEndRef} />
           </div>
@@ -484,20 +486,23 @@ export default function FlightFinderPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="e.g. Flights from London to Jamaica..."
+                placeholder={
+                  conversationState === 'need_origin' ? "e.g. London" :
+                  conversationState === 'need_destination' ? "e.g. Barbados" :
+                  conversationState === 'need_dates' ? "e.g. March 25th" :
+                  "e.g. London to Barbados on March 25th"
+                }
                 className="flex-1 rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                disabled={isSearching}
               />
               <button
                 type="submit"
-                disabled={!input.trim() || isTyping}
+                disabled={!input.trim() || isSearching}
                 className="bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold px-6 py-3 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
-                Send
+                {isSearching ? "..." : "Send"}
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-2 text-center">
-              Prices are estimates based on typical fares. Click results to search live prices.
-            </p>
           </form>
         </div>
 
@@ -506,18 +511,17 @@ export default function FlightFinderPage() {
           <p className="text-sm text-gray-600 mb-3">Quick searches:</p>
           <div className="flex flex-wrap gap-2">
             {[
-              "Flights from London to Barbados",
-              "Cheapest flights from Miami",
+              "London to Barbados tomorrow",
+              "New York to Jamaica next week",
+              "Miami to Aruba",
               "Paris to Martinique",
-              "Amsterdam to Aruba",
-              "Flights under £500 from UK",
+              "Amsterdam to Curaçao",
             ].map((q) => (
               <button
                 key={q}
-                onClick={() => {
-                  setInput(q);
-                }}
-                className="text-xs bg-gray-100 hover:bg-gray-200 text-navy px-3 py-2 rounded-lg transition-colors"
+                onClick={() => setInput(q)}
+                disabled={isSearching}
+                className="text-xs bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-navy px-3 py-2 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 {q}
               </button>
@@ -526,5 +530,98 @@ export default function FlightFinderPage() {
         </div>
       </section>
     </>
+  );
+}
+
+function FlightCard({ 
+  flight, 
+  generateBookingUrl 
+}: { 
+  flight: FlightResult; 
+  generateBookingUrl: (flight: FlightResult) => string;
+}) {
+  return (
+    <div className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            {flight.airlineLogo && (
+              <img 
+                src={flight.airlineLogo} 
+                alt={flight.airline}
+                className="w-6 h-6 object-contain"
+              />
+            )}
+            <div>
+              <p className="font-semibold text-navy text-sm">{flight.airline}</p>
+              <p className="text-xs text-gray-500">{flight.airlineCode}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4 text-sm">
+            <div>
+              <p className="font-medium">{flight.departure.airport}</p>
+              <p className="text-xs text-gray-500">{flight.departure.time}</p>
+            </div>
+            <div className="flex-1 text-center">
+              <p className="text-xs text-gray-500">{flight.duration}</p>
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <div className="w-2 h-2 bg-navy rounded-full"></div>
+                {flight.stops > 0 && (
+                  <>
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                    {flight.stops > 1 && (
+                      <>
+                        <div className="flex-1 h-px bg-gray-300"></div>
+                        <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                      </>
+                    )}
+                  </>
+                )}
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <div className="w-2 h-2 bg-navy rounded-full"></div>
+              </div>
+              {flight.stops > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {flight.stops} stop{flight.stops > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="font-medium">{flight.arrival.airport}</p>
+              <p className="text-xs text-gray-500">{flight.arrival.time}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-right ml-4">
+          <p className="font-bold text-green-600">
+            {formatCurrency(flight.price.amount, flight.price.currency)}
+          </p>
+          <a
+            href={generateBookingUrl(flight)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-2 bg-gold hover:bg-gold-light text-navy font-medium px-4 py-2 rounded-lg text-sm transition-colors"
+          >
+            Book Direct
+          </a>
+        </div>
+      </div>
+      
+      {flight.category && (
+        <div className="mt-3 pt-2 border-t border-gray-100">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+            flight.category === 'cheapest' ? 'bg-green-100 text-green-700' :
+            flight.category === 'fastest' ? 'bg-blue-100 text-blue-700' :
+            'bg-purple-100 text-purple-700'
+          }`}>
+            {flight.category === 'cheapest' ? '🏆 Cheapest' :
+             flight.category === 'fastest' ? '✈️ Fastest' : '💡 Best Value'}
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
