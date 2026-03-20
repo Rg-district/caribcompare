@@ -66,18 +66,18 @@ const routes = {
   },
 };
 
-// Origin and destination mappings for search
-const originOptions = [
+// Origins and destinations for search form
+const originCities = [
   { code: "LHR", name: "London", country: "UK" },
   { code: "MAN", name: "Manchester", country: "UK" },
   { code: "JFK", name: "New York", country: "USA" },
   { code: "MIA", name: "Miami", country: "USA" },
   { code: "YYZ", name: "Toronto", country: "Canada" },
   { code: "CDG", name: "Paris", country: "France" },
-  { code: "AMS", name: "Amsterdam", country: "Netherlands" },
+  { code: "AMS", name: "Amsterdam", country: "Netherlands" }
 ];
 
-const destinationOptions = [
+const caribbeanDestinations = [
   { code: "BGI", name: "Barbados", flag: "🇧🇧" },
   { code: "KIN", name: "Jamaica", flag: "🇯🇲" },
   { code: "POS", name: "Trinidad", flag: "🇹🇹" },
@@ -93,57 +93,43 @@ const destinationOptions = [
   { code: "SDQ", name: "Dominican Republic", flag: "🇩🇴" },
   { code: "SJU", name: "Puerto Rico", flag: "🇵🇷" },
   { code: "FDF", name: "Martinique", flag: "🇲🇶" },
-  { code: "PTP", name: "Guadeloupe", flag: "🇬🇵" },
+  { code: "PTP", name: "Guadeloupe", flag: "🇬🇵" }
 ];
 
 interface FlightResult {
   id: string;
   airline: string;
-  airlineCode: string;
-  airlineLogo?: string;
-  price: {
-    amount: string;
-    currency: string;
-  };
-  departure: {
-    airport: string;
-    time: string;
-    date: string;
-  };
-  arrival: {
-    airport: string;
-    time: string;
-    date: string;
-  };
+  price: { amount: string; currency: string };
+  departure: { airport: string; time: string; date: string };
+  arrival: { airport: string; time: string; date: string };
   duration: string;
   stops: number;
-  segments: Array<{
-    departure: string;
-    arrival: string;
-    duration: string;
-    airline: string;
-  }>;
-  isReturnFlight: boolean;
 }
 
-function formatCurrency(amount: string, currency: string): string {
-  const num = parseFloat(amount);
-  const symbol = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
-  return `${symbol}${num.toLocaleString()}`;
-}
+// Flight search affiliate links
+const searchLinks = {
+  skyscanner: (from: string, to: string) => 
+    `https://www.skyscanner.net/transport/flights/${from}/${to}/`,
+  kayak: (from: string, to: string) => 
+    `https://www.kayak.com/flights/${from}-${to}/`,
+  google: (from: string, to: string) =>
+    `https://www.google.com/travel/flights?q=flights%20from%20${from}%20to%20${to}`,
+};
 
 export default function FlightsPage() {
   const [selectedOrigin, setSelectedOrigin] = useState<keyof typeof routes>("uk");
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
   
   // Search form state
-  const [searchOrigin, setSearchOrigin] = useState("");
-  const [searchDestination, setSearchDestination] = useState("");
-  const [searchDepartureDate, setSearchDepartureDate] = useState("");
-  const [searchReturnDate, setSearchReturnDate] = useState("");
+  const [searchForm, setSearchForm] = useState({
+    origin: "",
+    destination: "",
+    departure_date: "",
+    return_date: ""
+  });
   const [searchResults, setSearchResults] = useState<FlightResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState("");
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const currentRoutes = routes[selectedOrigin];
   const selectedRoute = selectedDestination 
@@ -152,30 +138,26 @@ export default function FlightsPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!searchOrigin || !searchDestination || !searchDepartureDate) {
+    if (!searchForm.origin || !searchForm.destination || !searchForm.departure_date) {
       setSearchError("Please fill in origin, destination, and departure date");
       return;
     }
 
     setIsSearching(true);
-    setSearchError("");
-    setSearchResults([]);
+    setSearchError(null);
 
     try {
       const response = await fetch('/api/flights/search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          origin: searchOrigin,
-          destination: searchDestination,
-          departure_date: searchDepartureDate,
-          return_date: searchReturnDate || undefined,
+          origin: searchForm.origin,
+          destination: searchForm.destination,
+          departure_date: searchForm.departure_date,
+          return_date: searchForm.return_date || undefined,
           passengers: 1,
-          cabin_class: 'economy'
-        }),
+          cabin_class: "economy"
+        })
       });
 
       if (!response.ok) {
@@ -185,21 +167,31 @@ export default function FlightsPage() {
 
       const data = await response.json();
       setSearchResults(data.data || []);
-      
     } catch (error) {
-      setSearchError(error instanceof Error ? error.message : 'Failed to search flights');
+      console.error('Search error:', error);
+      setSearchError(error instanceof Error ? error.message : 'Search failed');
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const generateBookingUrl = (flight: FlightResult): string => {
-    return `https://www.skyscanner.net/transport/flights/${flight.departure.airport}/${flight.arrival.airport}/`;
+  const formatCurrency = (amount: string, currency: string): string => {
+    const num = parseFloat(amount);
+    const symbol = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
+    return `${symbol}${num.toLocaleString()}`;
   };
 
-  // Get min departure date (today)
-  const today = new Date().toISOString().split('T')[0];
-  
+  const getOriginName = (code: string): string => {
+    const origin = originCities.find(o => o.code === code);
+    return origin ? origin.name : code;
+  };
+
+  const getDestinationName = (code: string): string => {
+    const dest = caribbeanDestinations.find(d => d.code === code);
+    return dest ? dest.name : code;
+  };
+
   return (
     <>
       {/* Hero */}
@@ -222,202 +214,170 @@ export default function FlightsPage() {
           >
             <span className="text-xl">🤖</span>
             Try AI Flight Finder
-            <span className="text-xs bg-navy/20 px-2 py-0.5 rounded">Live Prices</span>
+            <span className="text-xs bg-navy/20 px-2 py-0.5 rounded">New</span>
           </Link>
         </div>
       </section>
 
-      {/* Real-time Flight Search */}
+      {/* Flight Search Form */}
       <section className="max-w-6xl mx-auto px-4 -mt-6">
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-          <h2 className="text-xl font-bold text-navy mb-4 flex items-center gap-2">
-            🔍 Search Live Flight Prices
-          </h2>
+          <h2 className="text-lg font-bold text-navy mb-4">🔍 Search Real-Time Flights</h2>
           
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Origin */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  From
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
                 <select
-                  value={searchOrigin}
-                  onChange={(e) => setSearchOrigin(e.target.value)}
+                  value={searchForm.origin}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, origin: e.target.value }))}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   <option value="">Select origin</option>
-                  {originOptions.map(option => (
-                    <option key={option.code} value={option.code}>
-                      {option.name}, {option.country}
+                  {originCities.map(city => (
+                    <option key={city.code} value={city.code}>
+                      {city.name} ({city.code})
                     </option>
                   ))}
                 </select>
               </div>
-              
+
+              {/* Destination */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  To
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
                 <select
-                  value={searchDestination}
-                  onChange={(e) => setSearchDestination(e.target.value)}
+                  value={searchForm.destination}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, destination: e.target.value }))}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 >
                   <option value="">Select destination</option>
-                  {destinationOptions.map(option => (
-                    <option key={option.code} value={option.code}>
-                      {option.flag} {option.name}
+                  {caribbeanDestinations.map(dest => (
+                    <option key={dest.code} value={dest.code}>
+                      {dest.flag} {dest.name} ({dest.code})
                     </option>
                   ))}
                 </select>
               </div>
-              
+
+              {/* Departure Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Departure
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Departure</label>
                 <input
                   type="date"
-                  value={searchDepartureDate}
-                  onChange={(e) => setSearchDepartureDate(e.target.value)}
-                  min={today}
+                  value={searchForm.departure_date}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, departure_date: e.target.value }))}
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 />
               </div>
-              
+
+              {/* Return Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Return (optional)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Return (optional)</label>
                 <input
                   type="date"
-                  value={searchReturnDate}
-                  onChange={(e) => setSearchReturnDate(e.target.value)}
-                  min={searchDepartureDate || today}
+                  value={searchForm.return_date}
+                  onChange={(e) => setSearchForm(prev => ({ ...prev, return_date: e.target.value }))}
+                  min={searchForm.departure_date || new Date().toISOString().split('T')[0]}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                 />
               </div>
             </div>
-            
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                ✨ Powered by real-time airline data
+              </p>
               <button
                 type="submit"
                 disabled={isSearching}
-                className="bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold px-6 py-3 rounded-lg transition-colors disabled:cursor-not-allowed"
+                className="bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold px-8 py-2.5 rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 {isSearching ? "Searching..." : "Search Flights"}
               </button>
-              
-              {searchError && (
-                <p className="text-red-600 text-sm">{searchError}</p>
-              )}
             </div>
           </form>
-        </div>
-      </section>
 
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 mt-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-            <h3 className="text-lg font-bold text-navy mb-4 flex items-center gap-2">
-              ✈️ Live Flight Results
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                {searchResults.length} flights found
-              </span>
-            </h3>
-            
-            <div className="space-y-4">
-              {searchResults.map(flight => (
-                <div key={flight.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        {flight.airlineLogo && (
-                          <img 
-                            src={flight.airlineLogo} 
-                            alt={flight.airline}
-                            className="w-6 h-6 object-contain"
-                          />
-                        )}
-                        <div>
-                          <p className="font-semibold text-navy text-sm">{flight.airline}</p>
-                          <p className="text-xs text-gray-500">{flight.airlineCode}</p>
+          {/* Search Results */}
+          {searchError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">❌ {searchError}</p>
+            </div>
+          )}
+
+          {searchResults.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <h3 className="font-bold text-navy mb-4">
+                ✈️ {getOriginName(searchForm.origin)} → {getDestinationName(searchForm.destination)} 
+                ({searchResults.length} results)
+              </h3>
+              
+              <div className="space-y-3">
+                {searchResults.slice(0, 5).map((flight) => (
+                  <div key={flight.id} className="bg-gray-50 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 text-sm">
+                          <div>
+                            <p className="font-medium">{flight.departure.airport}</p>
+                            <p className="text-xs text-gray-500">{flight.departure.time}</p>
+                          </div>
+                          <div className="flex-1 text-center">
+                            <p className="text-xs text-gray-500">{flight.duration}</p>
+                            <div className="flex items-center justify-center gap-1 mt-1">
+                              <div className="w-2 h-2 bg-navy rounded-full"></div>
+                              <div className="flex-1 h-px bg-gray-300"></div>
+                              {flight.stops > 0 && (
+                                <>
+                                  <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                                  <div className="flex-1 h-px bg-gray-300"></div>
+                                </>
+                              )}
+                              <div className="w-2 h-2 bg-navy rounded-full"></div>
+                            </div>
+                            {flight.stops > 0 && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {flight.stops} stop{flight.stops > 1 ? 's' : ''}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{flight.arrival.airport}</p>
+                            <p className="text-xs text-gray-500">{flight.arrival.time}</p>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm">
-                        <div>
-                          <p className="font-medium">{flight.departure.airport}</p>
-                          <p className="text-xs text-gray-500">{flight.departure.time}</p>
-                        </div>
-                        <div className="flex-1 text-center">
-                          <p className="text-xs text-gray-500">{flight.duration}</p>
-                          <div className="flex items-center justify-center gap-1 mt-1">
-                            <div className="w-2 h-2 bg-navy rounded-full"></div>
-                            {flight.stops > 0 && (
-                              <>
-                                <div className="flex-1 h-px bg-gray-300"></div>
-                                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                                {flight.stops > 1 && (
-                                  <>
-                                    <div className="flex-1 h-px bg-gray-300"></div>
-                                    <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                                  </>
-                                )}
-                              </>
-                            )}
-                            <div className="flex-1 h-px bg-gray-300"></div>
-                            <div className="w-2 h-2 bg-navy rounded-full"></div>
-                          </div>
-                          {flight.stops > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {flight.stops} stop{flight.stops > 1 ? 's' : ''}
-                            </p>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{flight.arrival.airport}</p>
-                          <p className="text-xs text-gray-500">{flight.arrival.time}</p>
-                        </div>
+                      <div className="text-right ml-6">
+                        <p className="font-bold text-green-600">
+                          {formatCurrency(flight.price.amount, flight.price.currency)}
+                        </p>
+                        <p className="text-xs text-gray-500">{flight.airline}</p>
                       </div>
                     </div>
-                    
-                    <div className="text-right ml-4">
-                      <p className="font-bold text-green-600 text-lg">
-                        {formatCurrency(flight.price.amount, flight.price.currency)}
-                      </p>
-                      <a
-                        href={generateBookingUrl(flight)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block mt-2 bg-gold hover:bg-gold-light text-navy font-medium px-4 py-2 rounded-lg text-sm transition-colors"
-                      >
-                        Book Direct
-                      </a>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              
+              <div className="mt-4 text-center">
+                <Link
+                  href="/flights/finder"
+                  className="inline-flex items-center gap-1 text-gold hover:text-gold-light font-medium text-sm"
+                >
+                  View all results & book direct →
+                </Link>
+              </div>
             </div>
-            
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                💡 <strong>Tip:</strong> Prices shown are live from airlines and may change quickly. 
-                Book soon if you find a good deal! Prices include taxes and fees.
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
 
-      {/* Popular Routes Section */}
-      <section className="max-w-6xl mx-auto px-4 mt-12">
-        <h2 className="text-xl font-bold text-navy mb-6">Popular Caribbean Routes</h2>
-        
-        {/* Origin Selection */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
-          <h3 className="text-lg font-bold text-navy mb-4">Browse by departure region:</h3>
+      {/* Origin Selection */}
+      <section className="max-w-6xl mx-auto px-4 mt-8">
+        <h2 className="text-xl font-bold text-navy mb-4">Popular Routes by Region</h2>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          <h3 className="text-lg font-bold text-navy mb-4">Where are you flying from?</h3>
           <div className="flex flex-wrap gap-3">
             {Object.entries(routes).map(([key, data]) => (
               <button
@@ -441,8 +401,13 @@ export default function FlightsPage() {
             Flying from: {currentRoutes.cities.join(", ")}
           </p>
         </div>
+      </section>
 
-        {/* Destination Cards */}
+      {/* Destination Cards */}
+      <section className="max-w-6xl mx-auto px-4 mt-8">
+        <h2 className="text-xl font-bold text-navy mb-4">
+          Caribbean Destinations from {currentRoutes.name}
+        </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentRoutes.destinations.map((dest) => (
             <div
@@ -493,7 +458,7 @@ export default function FlightsPage() {
         <section className="max-w-6xl mx-auto px-4 mt-8">
           <div className="bg-gradient-to-r from-navy to-navy-light rounded-xl p-6 text-white">
             <h2 className="text-xl font-bold mb-2">
-              Route Guide: {currentRoutes.cities[0]} → {selectedRoute.name}
+              Search: {currentRoutes.cities[0]} → {selectedRoute.name}
             </h2>
             <p className="text-gray-300 text-sm mb-4">
               Compare prices across multiple search engines to find the best deal.
@@ -501,7 +466,7 @@ export default function FlightsPage() {
             
             <div className="grid md:grid-cols-3 gap-4">
               <a
-                href={`https://www.skyscanner.net/transport/flights/${currentRoutes.cities[0].split(" ")[0].toLowerCase()}/${selectedRoute.code.toLowerCase()}/`}
+                href={searchLinks.skyscanner(currentRoutes.cities[0].split(" ")[0].toLowerCase(), selectedRoute.code.toLowerCase())}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 hover:bg-white/20 rounded-lg p-4 text-center transition-colors"
@@ -512,7 +477,7 @@ export default function FlightsPage() {
               </a>
               
               <a
-                href={`https://www.kayak.com/flights/${currentRoutes.cities[0].split(" ")[0].toLowerCase()}-${selectedRoute.code.toLowerCase()}/`}
+                href={searchLinks.kayak(currentRoutes.cities[0].split(" ")[0].toLowerCase(), selectedRoute.code.toLowerCase())}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 hover:bg-white/20 rounded-lg p-4 text-center transition-colors"
@@ -523,7 +488,7 @@ export default function FlightsPage() {
               </a>
               
               <a
-                href={`https://www.google.com/travel/flights?q=flights%20from%20${currentRoutes.cities[0].split(" ")[0]}%20to%20${selectedRoute.name}`}
+                href={searchLinks.google(currentRoutes.cities[0].split(" ")[0], selectedRoute.name)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 hover:bg-white/20 rounded-lg p-4 text-center transition-colors"

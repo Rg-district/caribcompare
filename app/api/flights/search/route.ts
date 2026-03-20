@@ -137,20 +137,20 @@ function parseDateTime(datetime: string): { time: string; date: string } {
 }
 
 function calculateDuration(durationStr: string): string {
-  // Duffel returns duration in ISO 8601 format like "PT5H30M"
-  const match = durationStr.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  // Duffel returns duration in ISO 8601 format like "PT5H30M" or "P1DT6H40M"
+  const match = durationStr.match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?/);
   if (!match) return durationStr;
   
-  const hours = match[1] ? parseInt(match[1]) : 0;
-  const minutes = match[2] ? parseInt(match[2]) : 0;
+  const days = match[1] ? parseInt(match[1]) : 0;
+  const hours = match[2] ? parseInt(match[2]) : 0;
+  const minutes = match[3] ? parseInt(match[3]) : 0;
   
-  if (hours > 0 && minutes > 0) {
-    return `${hours}h ${minutes}m`;
-  } else if (hours > 0) {
-    return `${hours}h`;
-  } else {
-    return `${minutes}m`;
-  }
+  let result = "";
+  if (days > 0) result += `${days}d `;
+  if (hours > 0) result += `${hours}h `;
+  if (minutes > 0) result += `${minutes}m`;
+  
+  return result.trim() || durationStr;
 }
 
 function parseOffer(offer: DuffelOffer): ParsedFlightResult {
