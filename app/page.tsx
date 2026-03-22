@@ -2,6 +2,7 @@ import Link from "next/link";
 import RateWidget from "@/components/RateWidget";
 import FlightWidget from "@/components/FlightWidget";
 import EmailSignup from "@/components/EmailSignup";
+import CaribbeanNewsFeed from "@/components/CaribbeanNewsFeed";
 import { countryConfig } from "@/lib/providers";
 import { getPopularDestinations } from "@/lib/destinations";
 
@@ -18,18 +19,6 @@ const categories = [
     href: "/flights",
     icon: "✈️",
   },
-  {
-    title: "Invest",
-    description: "Access global stock markets and ETFs from the Caribbean.",
-    href: "/invest",
-    icon: "📈",
-  },
-  {
-    title: "Crypto",
-    description: "Buy Bitcoin and crypto with the lowest fees available.",
-    href: "/crypto",
-    icon: "🪙",
-  },
 ];
 
 const guides = [
@@ -44,12 +33,6 @@ const guides = [
     title: "How to Send Money to Barbados from the UK in 2026 — Complete Guide",
     category: "Send Money",
     readTime: "8 min read",
-  },
-  {
-    slug: "best-crypto-exchanges-barbados",
-    title: "Best Crypto Exchanges for Barbados Residents in 2026",
-    category: "Crypto",
-    readTime: "7 min read",
   },
 ];
 
@@ -109,10 +92,10 @@ export default function Home() {
                   Compare Rates
                 </Link>
                 <Link
-                  href="/guides"
+                  href="/flights"
                   className="border border-white/30 hover:bg-white/10 px-6 py-3 rounded-lg text-sm transition-colors"
                 >
-                  Read Guides
+                  Find Flights
                 </Link>
               </div>
             </div>
@@ -130,7 +113,7 @@ export default function Home() {
 
       {/* Category Cards */}
       <section className="max-w-6xl mx-auto px-4 -mt-8">
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {categories.map((cat) => (
             <Link
               key={cat.href}
@@ -145,6 +128,11 @@ export default function Home() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* Caribbean News Feed */}
+      <section className="max-w-6xl mx-auto px-4 mt-12">
+        <CaribbeanNewsFeed />
       </section>
 
       {/* Trust Bar */}
@@ -241,7 +229,7 @@ export default function Home() {
       {/* Latest Guides */}
       <section className="max-w-6xl mx-auto px-4 mt-12 pb-8">
         <h2 className="text-2xl font-bold text-navy mb-6">Latest Guides</h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {guides.map((guide) => (
             <Link
               key={guide.slug}
