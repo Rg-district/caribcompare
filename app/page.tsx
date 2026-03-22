@@ -74,8 +74,8 @@ export default function Home() {
                 <span className="text-gold">built for the Caribbean</span>
               </h1>
               <p className="mt-4 text-lg text-gray-300">
-                Compare remittance rates, investment platforms, and crypto
-                exchanges. Trusted by the diaspora in the UK, US, and Canada.
+                Compare remittance rates and flight prices. Trusted by the
+                diaspora in the UK, US, and Canada.
               </p>
 
               {/* Country quick links */}

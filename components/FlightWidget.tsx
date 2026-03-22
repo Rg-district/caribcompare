@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 // Origins and destinations for search form
 const internationalCities = [
@@ -28,16 +27,35 @@ const caribbeanCities = [
   { code: "BDA", name: "Bermuda", flag: "🇧🇲" }
 ];
 
+// Build Google Flights URL with pre-filled route
+function buildGoogleFlightsUrl(from: string, to: string): string {
+  // Google Flights URL format: /flights/{origin}-{destination}
+  // This takes users directly to flight search results
+  return `https://www.google.com/travel/flights/search?tfs=CBwQAhopEgoyMDI2LTA0LTE1agwIAhIIL20vMDRqcGxyDAgCEggvbS8wMTZjZ3ABggELCP___________wFAAUgBmAEB&tfu=EgYIAhAAGAA&hl=en&curr=GBP`;
+}
+
+// Build direct airline booking URLs based on route
+function buildBookingUrl(from: string, to: string): string {
+  // Google Flights deep link with airport codes
+  const fromCode = from.toUpperCase();
+  const toCode = to.toUpperCase();
+  
+  // Format: /travel/flights?q=Flights+from+{origin}+to+{destination}
+  // This opens Google Flights with the search pre-filled
+  return `https://www.google.com/travel/flights?q=Flights+from+${fromCode}+to+${toCode}&curr=GBP`;
+}
+
 export default function FlightWidget() {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [fromCaribbean, setFromCaribbean] = useState(false);
-  const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (origin && destination) {
-      router.push(`/flights?from=${origin}&to=${destination}`);
+      // Open Google Flights directly in new tab with the route
+      const url = buildBookingUrl(origin, destination);
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -103,8 +121,12 @@ export default function FlightWidget() {
           disabled={!origin || !destination}
           className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-200 text-navy font-semibold py-3 px-4 rounded-lg transition-colors disabled:cursor-not-allowed"
         >
-          Search Flights
+          Search Flights →
         </button>
+        
+        <p className="text-xs text-center text-gray-400">
+          Opens Google Flights with live airline prices
+        </p>
       </form>
     </div>
   );
